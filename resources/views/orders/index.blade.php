@@ -38,9 +38,16 @@
                                 'processing' => 'badge-processing',
                                 'completed' => 'badge-completed',
                                 'cancelled' => 'badge-cancelled',
+                                'expired' => 'badge-expired',
                                 default => 'text-bg-primary',
                             };
                         @endphp
+
+                        @if(in_array($order->status, ['waiting_payment', 'payment_rejected']) && $order->payment_deadline_at)
+                            <div class="small text-muted mt-1">
+                                Batas pembayaran: {{ $order->payment_deadline_at->format('d M Y H:i') }}
+                            </div>
+                        @endif
 
                         <span class="badge status-badge {{ $statusClass }}">
                             {{ $order->status }}

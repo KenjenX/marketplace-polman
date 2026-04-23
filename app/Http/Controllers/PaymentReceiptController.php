@@ -13,6 +13,14 @@ class PaymentReceiptController extends Controller
             abort(403);
         }
 
+        $order->expireIfNeeded();
+        $order->refresh();
+
+        if ($order->status === 'expired') {
+            return redirect()->route('orders.show', $order->id)
+                ->with('error', 'Batas waktu pembayaran sudah habis. Order expired dan stok telah dikembalikan.');
+        }
+
         if (!in_array($order->status, ['waiting_payment', 'payment_rejected'])) {
             return back()->with('error', 'Order ini tidak bisa upload bukti pembayaran.');
         }

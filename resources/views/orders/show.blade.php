@@ -7,21 +7,32 @@
             <h2 class="mb-1">Detail Order</h2>
             <div class="text-muted">{{ $order->order_code }}</div>
         </div>
-        @php
-            $statusClass = match($order->status) {
-                'waiting_payment' => 'badge-waiting-payment',
-                'waiting_receipt_validation' => 'badge-waiting-validation',
-                'payment_rejected' => 'badge-rejected',
-                'processing' => 'badge-processing',
-                'completed' => 'badge-completed',
-                'cancelled' => 'badge-cancelled',
-                default => 'text-bg-primary',
-            };
-        @endphp
 
-        <span class="badge status-badge fs-6 {{ $statusClass }}">
-            {{ $order->status }}
-        </span>
+        <div class="text-md-end">
+            @php
+                $statusClass = match($order->status) {
+                    'waiting_payment' => 'badge-waiting-payment',
+                    'waiting_receipt_validation' => 'badge-waiting-validation',
+                    'payment_rejected' => 'badge-rejected',
+                    'processing' => 'badge-processing',
+                    'completed' => 'badge-completed',
+                    'cancelled' => 'badge-cancelled',
+                    'expired' => 'badge-expired',
+                    default => 'text-bg-primary',
+                };
+            @endphp
+
+            <span class="badge status-badge fs-6 {{ $statusClass }}">
+                {{ $order->status }}
+            </span>
+
+            @if(in_array($order->status, ['waiting_payment', 'payment_rejected']) && $order->payment_deadline_at)
+                <p class="mb-0 mt-2 text-danger">
+                    <strong>Batas Pembayaran:</strong>
+                    {{ $order->payment_deadline_at->format('d M Y H:i') }}
+                </p>
+            @endif
+        </div>
     </div>
 
     <div class="row g-4">
@@ -93,6 +104,12 @@
                 @elseif($order->status === 'waiting_receipt_validation')
                     <div class="alert alert-info mb-0">
                         Bukti pembayaran sudah diupload, menunggu validasi admin.
+                    </div>
+                @endif
+
+                @if($order->status === 'expired')
+                    <div class="alert alert-danger mt-3 mb-0">
+                        Order expired karena melewati batas waktu pembayaran. Stok telah dikembalikan.
                     </div>
                 @endif
             </div>

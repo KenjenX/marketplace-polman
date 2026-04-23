@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -14,18 +15,30 @@ class OrderController extends Controller
             ->latest()
             ->get();
 
+        foreach ($orders as $order) {
+            $order->expireIfNeeded();
+        }
+
+        $orders = Order::with(['user', 'paymentReceipt'])
+            ->latest()
+            ->get();
+
         return view('admin.orders.index', compact('orders'));
     }
 
     public function show(Order $order)
     {
-        $order->load(['user', 'address', 'items', 'paymentReceipt']);
+        $order->expireIfNeeded();
+        $order->refresh()->load(['user', 'address', 'items', 'paymentReceipt']);
 
         return view('admin.orders.show', compact('order'));
     }
 
     public function updatePaymentStatus(Request $request, Order $order)
     {
+        $order->expireIfNeeded();
+        $order->refresh();
+
         $request->validate([
             'action' => 'required|in:accept,reject',
             'admin_note' => 'nullable',
@@ -70,13 +83,12 @@ class OrderController extends Controller
 
     public function updateOrderStatus(Request $request, Order $order)
     {
+        $order->expireIfNeeded();
+        $order->refresh();
+
         $request->validate([
             'status' => 'required|in:completed,cancelled',
         ]);
-
-        if (!in_array($order->status, ['processing', 'waiting_payment', 'payment_rejected'])) {
-            return back()->with('error', 'Status order ini tidak bisa diubah lagi.');
-        }
 
         if ($request->status === 'completed') {
             if ($order->status !== 'processing') {
@@ -91,14 +103,32 @@ class OrderController extends Controller
         }
 
         if ($request->status === 'cancelled') {
-            $order->update([
-                'status' => 'cancelled',
-            ]);
+            if (!in_array($order->status, ['waiting_payment', 'payment_rejected', 'waiting_receipt_validation', 'processing'])) {
+                return back()->with('error', 'Order ini tidak bisa dibatalkan.');
+            }
 
-            return back()->with('success', 'Order berhasil dibatalkan.');
+            DB::transaction(function () use ($order) {
+                $lockedOrder = Order::query()->lockForUpdate()->find($order->id);
+
+                if (!$lockedOrder) {
+                    return;
+                }
+
+                if (!in_array($lockedOrder->status, ['waiting_payment', 'payment_rejected', 'waiting_receipt_validation', 'processing'])) {
+                    return;
+                }
+
+                $lockedOrder->load('items.variant');
+                $lockedOrder->restoreReservedStock();
+
+                $lockedOrder->update([
+                    'status' => 'cancelled',
+                ]);
+            });
+
+            return back()->with('success', 'Order berhasil dibatalkan dan stok telah dikembalikan.');
         }
 
         return back()->with('error', 'Status tidak valid.');
     }
-
 }

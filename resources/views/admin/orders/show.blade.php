@@ -9,6 +9,7 @@
         'processing' => 'badge-processing',
         'completed' => 'badge-completed',
         'cancelled' => 'badge-cancelled',
+        'expired' => 'badge-expired',
         default => 'text-bg-primary',
     };
 
@@ -46,7 +47,14 @@
                 <div class="section-title">Informasi Pemesan</div>
                 <p class="mb-1"><strong>Nama:</strong> {{ $order->user->name }}</p>
                 <p class="mb-1"><strong>Email:</strong> {{ $order->user->email }}</p>
-                <p class="mb-0"><strong>Metode Pembayaran:</strong> {{ $order->payment_method }}</p>
+                <p class="mb-1"><strong>Metode Pembayaran:</strong> {{ $order->payment_method }}</p>
+
+                @if($order->payment_deadline_at)
+                    <p class="mb-0">
+                        <strong>Batas Pembayaran:</strong>
+                        {{ $order->payment_deadline_at->format('d M Y H:i') }}
+                    </p>
+                @endif
             </div>
 
             <div class="info-box mb-4">

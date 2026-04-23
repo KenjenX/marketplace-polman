@@ -33,6 +33,7 @@
                             'processing' => 'badge-processing',
                             'completed' => 'badge-completed',
                             'cancelled' => 'badge-cancelled',
+                            'expired' => 'badge-expired',
                             default => 'text-bg-primary',
                         };
 

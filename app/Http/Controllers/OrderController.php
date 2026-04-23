@@ -3,13 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::with('address')
+        $orders = Order::with(['address', 'paymentReceipt'])
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->get();
+
+        foreach ($orders as $order) {
+            $order->expireIfNeeded();
+        }
+
+        $orders = Order::with(['address', 'paymentReceipt'])
             ->where('user_id', auth()->id())
             ->latest()
             ->get();
@@ -23,7 +31,8 @@ class OrderController extends Controller
             abort(403);
         }
 
-        $order->load(['address', 'items', 'paymentReceipt']);
+        $order->expireIfNeeded();
+        $order->refresh()->load(['address', 'items', 'paymentReceipt']);
 
         return view('orders.show', compact('order'));
     }

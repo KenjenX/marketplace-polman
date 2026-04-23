@@ -88,6 +88,12 @@
             background-color: #e2e3e5;
             color: #41464b;
         }
+        
+        .badge-expired {
+            background-color: #f5c2c7;
+            color: #842029;
+        }
+
     </style>
     @stack('styles')
 </head>

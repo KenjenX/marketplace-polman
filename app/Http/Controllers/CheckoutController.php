@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
-use App\Models\Order;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -47,16 +47,31 @@ class CheckoutController extends Controller
         DB::beginTransaction();
 
         try {
+            $lockedVariants = [];
+            $grandTotal = 0;
+
             foreach ($cart->items as $item) {
-                if ($item->variant->status !== 'active' || $item->variant->product->status !== 'active') {
+                $variant = ProductVariant::with('product')
+                    ->lockForUpdate()
+                    ->find($item->product_variant_id);
+
+                if (!$variant) {
+                    DB::rollBack();
+                    return redirect()->route('cart.index')->with('error', 'Variasi produk tidak ditemukan.');
+                }
+
+                if ($variant->status !== 'active' || $variant->product->status !== 'active') {
                     DB::rollBack();
                     return redirect()->route('cart.index')->with('error', 'Ada produk atau variasi yang tidak aktif.');
                 }
 
-                if ($item->quantity > $item->variant->stock) {
+                if ($item->quantity > $variant->stock) {
                     DB::rollBack();
                     return redirect()->route('cart.index')->with('error', 'Ada jumlah produk yang melebihi stok.');
                 }
+
+                $lockedVariants[$variant->id] = $variant;
+                $grandTotal += $variant->price * $item->quantity;
             }
 
             $address = auth()->user()->addresses()->create([
@@ -69,30 +84,28 @@ class CheckoutController extends Controller
                 'full_address' => $request->full_address,
             ]);
 
-            $grandTotal = 0;
-
-            foreach ($cart->items as $item) {
-                $grandTotal += $item->variant->price * $item->quantity;
-            }
-
             $order = auth()->user()->orders()->create([
                 'address_id' => $address->id,
                 'order_code' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
                 'total_price' => $grandTotal,
                 'payment_method' => $request->payment_method,
                 'status' => 'waiting_payment',
+                'payment_deadline_at' => now()->addHours(24),
                 'notes' => $request->notes,
             ]);
 
             foreach ($cart->items as $item) {
-                $subtotal = $item->variant->price * $item->quantity;
+                $variant = $lockedVariants[$item->product_variant_id];
+                $subtotal = $variant->price * $item->quantity;
+
+                $variant->decrement('stock', $item->quantity);
 
                 $order->items()->create([
-                    'product_id' => $item->variant->product->id,
-                    'product_variant_id' => $item->variant->id,
-                    'product_name' => $item->variant->product->name,
-                    'variant_name' => $item->variant->name,
-                    'price' => $item->variant->price,
+                    'product_id' => $variant->product->id,
+                    'product_variant_id' => $variant->id,
+                    'product_name' => $variant->product->name,
+                    'variant_name' => $variant->name,
+                    'price' => $variant->price,
                     'quantity' => $item->quantity,
                     'subtotal' => $subtotal,
                 ]);
