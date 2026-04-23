@@ -1,126 +1,103 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Checkout</title>
-</head>
-<body>
-    <h1>Checkout</h1>
+@extends('layouts.store')
 
-    @if(session('error'))
-        <p>{{ session('error') }}</p>
-    @endif
+@section('content')
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="content-card">
+            <h3 class="mb-3">Ringkasan Pesanan</h3>
 
-    @if($errors->any())
-        <ul>
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
+            @php
+                $grandTotal = 0;
+            @endphp
+
+            @foreach($cart->items as $item)
+                @php
+                    $subtotal = $item->variant->price * $item->quantity;
+                    $grandTotal += $subtotal;
+                @endphp
+
+                <div class="border-bottom pb-3 mb-3">
+                    <div class="fw-semibold">{{ $item->variant->product->name }}</div>
+                    <div class="text-muted small">{{ $item->variant->name }}</div>
+                    <div>Qty: {{ $item->quantity }}</div>
+                    <div>Rp {{ number_format($subtotal, 0, ',', '.') }}</div>
+                </div>
             @endforeach
-        </ul>
-    @endif
 
-    <h2>Ringkasan Pesanan</h2>
-
-    @php
-        $grandTotal = 0;
-    @endphp
-
-    @foreach($cart->items as $item)
-        @php
-            $subtotal = $item->variant->price * $item->quantity;
-            $grandTotal += $subtotal;
-        @endphp
-
-        <div style="border:1px solid #000; padding:10px; margin-bottom:10px;">
-            <p><strong>Produk:</strong> {{ $item->variant->product->name }}</p>
-            <p><strong>Variasi:</strong> {{ $item->variant->name }}</p>
-            <p><strong>Harga:</strong> Rp {{ number_format($item->variant->price, 0, ',', '.') }}</p>
-            <p><strong>Jumlah:</strong> {{ $item->quantity }}</p>
-            <p><strong>Subtotal:</strong> Rp {{ number_format($subtotal, 0, ',', '.') }}</p>
+            <h4 class="mb-0">Total: Rp {{ number_format($grandTotal, 0, ',', '.') }}</h4>
         </div>
-    @endforeach
+    </div>
 
-    <h3>Total: Rp {{ number_format($grandTotal, 0, ',', '.') }}</h3>
+    <div class="col-lg-7">
+        <div class="content-card">
+            <h3 class="mb-4">Form Checkout</h3>
 
-    <hr>
+            <form action="{{ route('checkout.store') }}" method="POST">
+                @csrf
 
-    <form action="{{ route('checkout.store') }}" method="POST">
-        @csrf
+                <h5 class="mb-3">Alamat Pengiriman</h5>
 
-        <h2>Alamat Pengiriman</h2>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nama Penerima</label>
+                        <input type="text" name="recipient_name" value="{{ old('recipient_name') }}" class="form-control">
+                    </div>
 
-        <div>
-            <label>Nama Penerima</label><br>
-            <input type="text" name="recipient_name" value="{{ old('recipient_name') }}">
+                    <div class="col-md-6">
+                        <label class="form-label">No. HP</label>
+                        <input type="text" name="phone" value="{{ old('phone') }}" class="form-control">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Provinsi</label>
+                        <input type="text" name="province" value="{{ old('province') }}" class="form-control">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Kota / Kabupaten</label>
+                        <input type="text" name="city" value="{{ old('city') }}" class="form-control">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Kecamatan</label>
+                        <input type="text" name="district" value="{{ old('district') }}" class="form-control">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Kode Pos</label>
+                        <input type="text" name="postal_code" value="{{ old('postal_code') }}" class="form-control">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Alamat Lengkap</label>
+                        <textarea name="full_address" class="form-control" rows="4">{{ old('full_address') }}</textarea>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <h5 class="mb-3">Pembayaran</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">Metode Pembayaran</label>
+                    <select name="payment_method" class="form-select">
+                        <option value="bank_transfer" {{ old('payment_method') == 'bank_transfer' ? 'selected' : '' }}>
+                            Transfer Bank
+                        </option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Catatan</label>
+                    <textarea name="notes" class="form-control" rows="3">{{ old('notes') }}</textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{{ route('cart.index') }}" class="btn btn-outline-secondary">Kembali ke Keranjang</a>
+                    <button type="submit" class="btn btn-primary">Buat Order</button>
+                </div>
+            </form>
         </div>
-
-        <br>
-
-        <div>
-            <label>No. HP</label><br>
-            <input type="text" name="phone" value="{{ old('phone') }}">
-        </div>
-
-        <br>
-
-        <div>
-            <label>Provinsi</label><br>
-            <input type="text" name="province" value="{{ old('province') }}">
-        </div>
-
-        <br>
-
-        <div>
-            <label>Kota / Kabupaten</label><br>
-            <input type="text" name="city" value="{{ old('city') }}">
-        </div>
-
-        <br>
-
-        <div>
-            <label>Kecamatan</label><br>
-            <input type="text" name="district" value="{{ old('district') }}">
-        </div>
-
-        <br>
-
-        <div>
-            <label>Kode Pos</label><br>
-            <input type="text" name="postal_code" value="{{ old('postal_code') }}">
-        </div>
-
-        <br>
-
-        <div>
-            <label>Alamat Lengkap</label><br>
-            <textarea name="full_address">{{ old('full_address') }}</textarea>
-        </div>
-
-        <br>
-
-        <h2>Metode Pembayaran</h2>
-
-        <div>
-            <select name="payment_method">
-                <option value="bank_transfer" {{ old('payment_method') == 'bank_transfer' ? 'selected' : '' }}>
-                    Transfer Bank
-                </option>
-            </select>
-        </div>
-
-        <br>
-
-        <div>
-            <label>Catatan</label><br>
-            <textarea name="notes">{{ old('notes') }}</textarea>
-        </div>
-
-        <br>
-
-        <button type="submit">Buat Order</button>
-    </form>
-
-    <br>
-    <a href="{{ route('cart.index') }}">Kembali ke Keranjang</a>
-</body>
-</html>
+    </div>
+</div>
+@endsection

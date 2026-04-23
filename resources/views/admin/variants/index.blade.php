@@ -1,59 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Spesifikasi Produk</title>
-</head>
-<body>
-    <h1>Spesifikasi Produk: {{ $product->name }}</h1>
+@extends('layouts.admin')
 
-    @if(session('success'))
-        <p>{{ session('success') }}</p>
-    @endif
+@section('content')
+<div class="admin-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Variasi Produk</h2>
+            <p class="text-muted mb-0">Kelola variasi untuk produk: <strong>{{ $product->name }}</strong></p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary">Kembali ke Produk</a>
+            <a href="{{ route('admin.products.variants.create', $product->id) }}" class="btn btn-primary">Tambah Variasi</a>
+        </div>
+    </div>
 
-    <a href="{{ route('admin.products.index') }}">Kembali ke Produk</a>
-    <br><br>
-    <a href="{{ route('admin.products.variants.create', $product->id) }}">Tambah Spesifikasi</a>
-
-    <br><br>
-
-    <table border="1" cellpadding="10" cellspacing="0">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Nama Spesifikasi</th>
-                <th>Detail</th>
-                <th>Harga</th>
-                <th>Stok</th>
-                <th>Status</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($variants as $variant)
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle mb-0">
+            <thead>
                 <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td>{{ $variant->name }}</td>
-                    <td>{{ $variant->specification }}</td>
-                    <td>{{ $variant->price }}</td>
-                    <td>{{ $variant->stock }}</td>
-                    <td>{{ $variant->status }}</td>
-                    <td>
-                        <a href="{{ route('admin.variants.edit', $variant->id) }}">Edit</a>
+                    <th>No</th>
+                    <th>Nama Variasi</th>
+                    <th>Detail</th>
+                    <th>Harga</th>
+                    <th>Stok</th>
+                    <th>Status</th>
+                    <th width="180">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($variants as $variant)
+                    <tr>
+                        <td>{{ $loop->iteration }}</td>
+                        <td>{{ $variant->name }}</td>
+                        <td>{{ $variant->specification }}</td>
+                        <td>Rp {{ number_format($variant->price, 0, ',', '.') }}</td>
+                        <td>{{ $variant->stock }}</td>
+                        <td>
+                            <span class="badge {{ $variant->status === 'active' ? 'text-bg-success' : 'text-bg-secondary' }}">
+                                {{ $variant->status }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('admin.variants.edit', $variant->id) }}" class="btn btn-outline-primary btn-sm">
+                                    Edit
+                                </a>
 
-                        <form action="{{ route('admin.variants.destroy', $variant->id) }}" method="POST" style="display:inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" onclick="return confirm('Yakin hapus spesifikasi ini?')">Hapus</button>
-                        </form>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="7">Belum ada spesifikasi</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-</body>
-</html>
+                                <form action="{{ route('admin.variants.destroy', $variant->id) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Yakin hapus variasi ini?')">
+                                        Hapus
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">Belum ada variasi</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+@endsection

@@ -1,110 +1,179 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Detail Order Admin</title>
-</head>
-<body>
-    <h1>Detail Order Admin</h1>
+@extends('layouts.admin')
 
-    @if(session('success'))
-        <p>{{ session('success') }}</p>
-    @endif
+@section('content')
+@php
+    $orderStatusClass = match($order->status) {
+        'waiting_payment' => 'badge-waiting-payment',
+        'waiting_receipt_validation' => 'badge-waiting-validation',
+        'payment_rejected' => 'badge-rejected',
+        'processing' => 'badge-processing',
+        'completed' => 'badge-completed',
+        'cancelled' => 'badge-cancelled',
+        default => 'text-bg-primary',
+    };
 
-    @if(session('error'))
-        <p>{{ session('error') }}</p>
-    @endif
+    $receiptStatusClass = match(optional($order->paymentReceipt)->validation_status) {
+        'pending' => 'badge-waiting-validation',
+        'accepted' => 'badge-completed',
+        'rejected' => 'badge-rejected',
+        default => 'badge-cancelled',
+    };
+@endphp
 
-    @if($errors->any())
-        <ul>
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    @endif
-
-    <p><strong>Kode Order:</strong> {{ $order->order_code }}</p>
-    <p><strong>User:</strong> {{ $order->user->name }} ({{ $order->user->email }})</p>
-    <p><strong>Status Order:</strong> {{ $order->status }}</p>
-    <p><strong>Metode Pembayaran:</strong> {{ $order->payment_method }}</p>
-    <p><strong>Total:</strong> Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
-
-    <h2>Alamat Pengiriman</h2>
-    <p>{{ $order->address->recipient_name }}</p>
-    <p>{{ $order->address->phone }}</p>
-    <p>{{ $order->address->province }}, {{ $order->address->city }}, {{ $order->address->district }}</p>
-    <p>{{ $order->address->postal_code }}</p>
-    <p>{{ $order->address->full_address }}</p>
-
-    <h2>Item Pesanan</h2>
-    @foreach($order->items as $item)
-        <div style="border:1px solid #000; padding:10px; margin-bottom:10px;">
-            <p><strong>Produk:</strong> {{ $item->product_name }}</p>
-            <p><strong>Variasi:</strong> {{ $item->variant_name }}</p>
-            <p><strong>Harga:</strong> Rp {{ number_format($item->price, 0, ',', '.') }}</p>
-            <p><strong>Jumlah:</strong> {{ $item->quantity }}</p>
-            <p><strong>Subtotal:</strong> Rp {{ number_format($item->subtotal, 0, ',', '.') }}</p>
+<div class="admin-card">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+        <div>
+            <h2 class="mb-1">Detail Order</h2>
+            <p class="text-muted mb-0">{{ $order->order_code }}</p>
         </div>
-    @endforeach
 
-    <h2>Bukti Pembayaran</h2>
+        <div class="d-flex flex-wrap gap-2">
+            <span class="badge status-badge {{ $orderStatusClass }}">
+                {{ $order->status }}
+            </span>
 
-    @if($order->paymentReceipt)
-        <p><strong>Status Validasi:</strong> {{ $order->paymentReceipt->validation_status }}</p>
+            @if($order->paymentReceipt)
+                <span class="badge status-badge {{ $receiptStatusClass }}">
+                    bukti: {{ $order->paymentReceipt->validation_status }}
+                </span>
+            @endif
+        </div>
+    </div>
 
-        @if($order->paymentReceipt->admin_note)
-            <p><strong>Catatan Admin:</strong> {{ $order->paymentReceipt->admin_note }}</p>
-        @endif
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="info-box mb-4">
+                <div class="section-title">Informasi Pemesan</div>
+                <p class="mb-1"><strong>Nama:</strong> {{ $order->user->name }}</p>
+                <p class="mb-1"><strong>Email:</strong> {{ $order->user->email }}</p>
+                <p class="mb-0"><strong>Metode Pembayaran:</strong> {{ $order->payment_method }}</p>
+            </div>
 
-        <p>
-            <a href="{{ asset('storage/' . $order->paymentReceipt->receipt_file) }}" target="_blank">
-                Lihat Bukti Pembayaran
-            </a>
-        </p>
+            <div class="info-box mb-4">
+                <div class="section-title">Alamat Pengiriman</div>
+                <p class="mb-1">{{ $order->address->recipient_name }}</p>
+                <p class="mb-1">{{ $order->address->phone }}</p>
+                <p class="mb-1">{{ $order->address->province }}, {{ $order->address->city }}, {{ $order->address->district }}</p>
+                <p class="mb-1">{{ $order->address->postal_code }}</p>
+                <p class="mb-0">{{ $order->address->full_address }}</p>
+            </div>
 
-        @if($order->status === 'waiting_receipt_validation')
-            <h3>Validasi Pembayaran</h3>
+            <div class="info-box">
+                <div class="section-title">Item Pesanan</div>
 
-            <form action="{{ route('admin.orders.updatePaymentStatus', $order->id) }}" method="POST">
-                @csrf
-                @method('PATCH')
-
-                <div>
-                    <label>Catatan Admin</label><br>
-                    <textarea name="admin_note"></textarea>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Produk</th>
+                                <th>Variasi</th>
+                                <th>Harga</th>
+                                <th>Qty</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($order->items as $item)
+                                <tr>
+                                    <td>{{ $item->product_name }}</td>
+                                    <td>{{ $item->variant_name }}</td>
+                                    <td>Rp {{ number_format($item->price, 0, ',', '.') }}</td>
+                                    <td>{{ $item->quantity }}</td>
+                                    <td>Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
 
-                <br>
+                <div class="text-end mt-3">
+                    <strong>Total: Rp {{ number_format($order->total_price, 0, ',', '.') }}</strong>
+                </div>
+            </div>
+        </div>
 
-                <button type="submit" name="action" value="accept">Terima Pembayaran</button>
-                <button type="submit" name="action" value="reject">Tolak Pembayaran</button>
-            </form>
-        @endif
-    @else
-        <p>Belum ada bukti pembayaran.</p>
-    @endif
+        <div class="col-lg-4">
+            <div class="info-box mb-4">
+                <div class="section-title">Bukti Pembayaran</div>
 
-    <h2>Status Lanjutan Order</h2>
+                @if($order->paymentReceipt)
+                    <p class="mb-2">
+                        <strong>Status Validasi:</strong>
+                        <span class="badge status-badge {{ $receiptStatusClass }}">
+                            {{ $order->paymentReceipt->validation_status }}
+                        </span>
+                    </p>
 
-    @if($order->status === 'processing')
-        <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" style="margin-bottom: 10px;">
-            @csrf
-            @method('PATCH')
-            <input type="hidden" name="status" value="completed">
-            <button type="submit" onclick="return confirm('Selesaikan order ini?')">Selesaikan Order</button>
-        </form>
-    @endif
+                    @if($order->paymentReceipt->admin_note)
+                        <p class="mb-3">
+                            <strong>Catatan Admin:</strong><br>
+                            {{ $order->paymentReceipt->admin_note }}
+                        </p>
+                    @endif
 
-    @if(in_array($order->status, ['waiting_payment', 'payment_rejected', 'processing']))
-        <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
-            @csrf
-            @method('PATCH')
-            <input type="hidden" name="status" value="cancelled">
-            <button type="submit" onclick="return confirm('Batalkan order ini?')">Batalkan Order</button>
-        </form>
-    @endif
+                    <a href="{{ asset('storage/' . $order->paymentReceipt->receipt_file) }}" target="_blank" class="btn btn-outline-primary w-100">
+                        Lihat Bukti Pembayaran
+                    </a>
+                @else
+                    <p class="mb-0 text-muted">Belum ada bukti pembayaran.</p>
+                @endif
+            </div>
 
-    <br>
-    <a href="{{ route('admin.orders.index') }}">Kembali ke Daftar Order</a>
-</body>
-</html>
+            @if($order->paymentReceipt && $order->status === 'waiting_receipt_validation')
+                <div class="info-box mb-4">
+                    <div class="section-title">Validasi Pembayaran</div>
+
+                    <form action="{{ route('admin.orders.updatePaymentStatus', $order->id) }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+
+                        <div class="mb-3">
+                            <label class="form-label">Catatan Admin</label>
+                            <textarea name="admin_note" class="form-control" rows="4"></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="action" value="accept" class="btn btn-success">
+                                Terima Pembayaran
+                            </button>
+                            <button type="submit" name="action" value="reject" class="btn btn-outline-danger">
+                                Tolak Pembayaran
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            @endif
+
+            <div class="info-box">
+                <div class="section-title">Status Lanjutan Order</div>
+
+                @if($order->status === 'processing')
+                    <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" class="mb-2">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="status" value="completed">
+                        <button type="submit" class="btn btn-primary w-100" onclick="return confirm('Selesaikan order ini?')">
+                            Selesaikan Order
+                        </button>
+                    </form>
+                @endif
+
+                @if(in_array($order->status, ['waiting_payment', 'payment_rejected', 'processing']))
+                    <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="status" value="cancelled">
+                        <button type="submit" class="btn btn-outline-secondary w-100" onclick="return confirm('Batalkan order ini?')">
+                            Batalkan Order
+                        </button>
+                    </form>
+                @else
+                    <p class="mb-0 text-muted">Tidak ada aksi lanjutan untuk status ini.</p>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <a href="{{ route('admin.orders.index') }}" class="btn btn-link px-0 mt-4">← Kembali ke daftar order</a>
+</div>
+@endsection

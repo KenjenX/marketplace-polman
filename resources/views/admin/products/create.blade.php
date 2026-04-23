@@ -1,26 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Tambah Produk</title>
-</head>
-<body>
-    <h1>Tambah Produk</h1>
+@extends('layouts.admin')
 
-    @if($errors->any())
-        <ul>
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    @endif
+@section('content')
+<div class="admin-card">
+    <h2 class="mb-4">Tambah Produk</h2>
 
     <form action="{{ route('admin.products.store') }}" method="POST">
         @csrf
 
-        <div>
-            <label>Kategori</label><br>
-            <select name="category_id">
+        <div class="mb-3">
+            <label class="form-label">Kategori</label>
+            <select name="category_id" class="form-select">
                 <option value="">-- Pilih Kategori --</option>
                 @foreach($categories as $category)
                     <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
@@ -30,43 +19,33 @@
             </select>
         </div>
 
-        <br>
-
-        <div>
-            <label>Nama Produk</label><br>
-            <input type="text" name="name" value="{{ old('name') }}">
+        <div class="mb-3">
+            <label class="form-label">Nama Produk</label>
+            <input type="text" name="name" value="{{ old('name') }}" class="form-control">
         </div>
 
-        <br>
-
-        <div>
-            <label>Slug</label><br>
-            <input type="text" name="slug" value="{{ old('slug') }}">
+        <div class="mb-3">
+            <label class="form-label">Slug</label>
+            <input type="text" name="slug" value="{{ old('slug') }}" class="form-control">
         </div>
 
-        <br>
-
-        <div>
-            <label>Deskripsi</label><br>
-            <textarea name="description">{{ old('description') }}</textarea>
+        <div class="mb-3">
+            <label class="form-label">Deskripsi</label>
+            <textarea name="description" class="form-control" rows="4">{{ old('description') }}</textarea>
         </div>
 
-        <br>
-
-        <div>
-            <label>Status</label><br>
-            <select name="status">
+        <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
                 <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Active</option>
                 <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
             </select>
         </div>
 
-        <br>
-
-        <button type="submit">Simpan</button>
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary">Kembali</a>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
     </form>
-
-    <br>
-    <a href="{{ route('admin.products.index') }}">Kembali</a>
-</body>
-</html>
+</div>
+@endsection

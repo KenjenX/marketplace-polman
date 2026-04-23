@@ -11,10 +11,15 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentReceiptController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Order;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
+
+Route::get('/', [ProductController::class, 'home'])->name('home');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -44,7 +49,12 @@ Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', function () {
-        return 'Halaman admin berhasil diakses';
+        return view('admin.dashboard', [
+            'categoryCount' => Category::count(),
+            'productCount' => Product::count(),
+            'orderCount' => Order::count(),
+            'waitingValidationCount' => Order::where('status', 'waiting_receipt_validation')->count(),
+        ]);
     })->name('dashboard');
 
     Route::resource('products', AdminProductController::class);

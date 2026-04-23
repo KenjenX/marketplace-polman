@@ -1,94 +1,104 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Detail Order</title>
-</head>
-<body>
-    <h1>Detail Order</h1>
+@extends('layouts.store')
 
-    @if(session('success'))
-        <p>{{ session('success') }}</p>
-    @endif
-
-    @if(session('error'))
-        <p>{{ session('error') }}</p>
-    @endif
-
-    @if($errors->any())
-        <ul>
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    @endif
-
-    <p><strong>Kode Order:</strong> {{ $order->order_code }}</p>
-    <p><strong>Status:</strong> {{ $order->status }}</p>
-    <p><strong>Metode Pembayaran:</strong> {{ $order->payment_method }}</p>
-    <p><strong>Total:</strong> Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
-
-    <h2>Alamat Pengiriman</h2>
-    <p>{{ $order->address->recipient_name }}</p>
-    <p>{{ $order->address->phone }}</p>
-    <p>{{ $order->address->province }}, {{ $order->address->city }}, {{ $order->address->district }}</p>
-    <p>{{ $order->address->postal_code }}</p>
-    <p>{{ $order->address->full_address }}</p>
-
-    <h2>Item Pesanan</h2>
-
-    @foreach($order->items as $item)
-        <div style="border:1px solid #000; padding:10px; margin-bottom:10px;">
-            <p><strong>Produk:</strong> {{ $item->product_name }}</p>
-            <p><strong>Variasi:</strong> {{ $item->variant_name }}</p>
-            <p><strong>Harga:</strong> Rp {{ number_format($item->price, 0, ',', '.') }}</p>
-            <p><strong>Jumlah:</strong> {{ $item->quantity }}</p>
-            <p><strong>Subtotal:</strong> Rp {{ number_format($item->subtotal, 0, ',', '.') }}</p>
+@section('content')
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+        <div>
+            <h2 class="mb-1">Detail Order</h2>
+            <div class="text-muted">{{ $order->order_code }}</div>
         </div>
-    @endforeach
+        @php
+            $statusClass = match($order->status) {
+                'waiting_payment' => 'badge-waiting-payment',
+                'waiting_receipt_validation' => 'badge-waiting-validation',
+                'payment_rejected' => 'badge-rejected',
+                'processing' => 'badge-processing',
+                'completed' => 'badge-completed',
+                'cancelled' => 'badge-cancelled',
+                default => 'text-bg-primary',
+            };
+        @endphp
 
-    <h2>Instruksi Pembayaran</h2>
-    <p>Silakan transfer ke rekening berikut:</p>
-    <p><strong>Bank:</strong> BCA</p>
-    <p><strong>No. Rekening:</strong> 12345678</p>
-    <p><strong>Atas Nama:</strong> Marketplace Polman</p>
+        <span class="badge status-badge fs-6 {{ $statusClass }}">
+            {{ $order->status }}
+        </span>
+    </div>
 
-    <h2>Bukti Pembayaran</h2>
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <h5>Item Pesanan</h5>
 
-    @if($order->paymentReceipt)
-        <p><strong>Status Validasi:</strong> {{ $order->paymentReceipt->validation_status }}</p>
+            @foreach($order->items as $item)
+                <div class="border rounded-4 p-3 mb-3">
+                    <div class="fw-semibold">{{ $item->product_name }}</div>
+                    <div class="text-muted mb-2">{{ $item->variant_name }}</div>
+                    <div>Harga: Rp {{ number_format($item->price, 0, ',', '.') }}</div>
+                    <div>Jumlah: {{ $item->quantity }}</div>
+                    <div>Subtotal: Rp {{ number_format($item->subtotal, 0, ',', '.') }}</div>
+                </div>
+            @endforeach
+        </div>
 
-        @if($order->paymentReceipt->admin_note)
-            <p><strong>Catatan Admin:</strong> {{ $order->paymentReceipt->admin_note }}</p>
-        @endif
-
-        <p>
-            <a href="{{ asset('storage/' . $order->paymentReceipt->receipt_file) }}" target="_blank">
-                Lihat Bukti Pembayaran
-            </a>
-        </p>
-    @endif
-
-    @if(in_array($order->status, ['waiting_payment', 'payment_rejected']))
-        <form action="{{ route('orders.uploadReceipt', $order->id) }}" method="POST" enctype="multipart/form-data">
-            @csrf
-
-            <div>
-                <label>Upload Bukti Pembayaran</label><br>
-                <input type="file" name="receipt_file" accept=".jpg,.jpeg,.png">
+        <div class="col-lg-5">
+            <div class="border rounded-4 p-3 mb-3">
+                <h5>Ringkasan</h5>
+                <p class="mb-1"><strong>Metode Pembayaran:</strong> {{ $order->payment_method }}</p>
+                <p class="mb-0"><strong>Total:</strong> Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
             </div>
 
-            <br>
+            <div class="border rounded-4 p-3 mb-3">
+                <h5>Alamat Pengiriman</h5>
+                <p class="mb-1">{{ $order->address->recipient_name }}</p>
+                <p class="mb-1">{{ $order->address->phone }}</p>
+                <p class="mb-1">{{ $order->address->province }}, {{ $order->address->city }}, {{ $order->address->district }}</p>
+                <p class="mb-1">{{ $order->address->postal_code }}</p>
+                <p class="mb-0">{{ $order->address->full_address }}</p>
+            </div>
 
-            <button type="submit">
-                {{ $order->status === 'payment_rejected' ? 'Upload Ulang Bukti' : 'Upload Bukti Pembayaran' }}
-            </button>
-        </form>
-    @elseif($order->status === 'waiting_receipt_validation')
-        <p><strong>Bukti pembayaran sudah diupload, menunggu validasi admin.</strong></p>
-    @endif
+            <div class="border rounded-4 p-3 mb-3 bg-light">
+                <h5 class="mb-3">Instruksi Pembayaran</h5>
+                <p class="mb-2">Silakan lakukan transfer ke rekening berikut:</p>
+                <div class="mb-2"><strong>Bank:</strong> BCA</div>
+                <div class="mb-2"><strong>No. Rekening:</strong> 12345678</div>
+                <div class="mb-0"><strong>Atas Nama:</strong> Marketplace Polman</div>
+            </div>
 
-    <br>
-    <a href="{{ route('orders.index') }}">Kembali ke Daftar Order</a>
-</body>
-</html>
+            <div class="border rounded-4 p-3">
+                <h5>Bukti Pembayaran</h5>
+
+                @if($order->paymentReceipt)
+                    <p class="mb-1"><strong>Status Validasi:</strong> {{ $order->paymentReceipt->validation_status }}</p>
+
+                    @if($order->paymentReceipt->admin_note)
+                        <p class="mb-2"><strong>Catatan Admin:</strong> {{ $order->paymentReceipt->admin_note }}</p>
+                    @endif
+
+                    <a href="{{ asset('storage/' . $order->paymentReceipt->receipt_file) }}" target="_blank" class="btn btn-outline-primary btn-sm mb-3">
+                        Lihat Bukti Pembayaran
+                    </a>
+                @endif
+
+                @if(in_array($order->status, ['waiting_payment', 'payment_rejected']))
+                    <form action="{{ route('orders.uploadReceipt', $order->id) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="form-label">Upload Bukti Pembayaran</label>
+                            <input type="file" name="receipt_file" class="form-control" accept=".jpg,.jpeg,.png">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            {{ $order->status === 'payment_rejected' ? 'Upload Ulang Bukti' : 'Upload Bukti Pembayaran' }}
+                        </button>
+                    </form>
+                @elseif($order->status === 'waiting_receipt_validation')
+                    <div class="alert alert-info mb-0">
+                        Bukti pembayaran sudah diupload, menunggu validasi admin.
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <a href="{{ route('orders.index') }}" class="btn btn-link px-0 mt-4">← Kembali ke daftar order</a>
+</div>
+@endsection
