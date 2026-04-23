@@ -4,7 +4,7 @@
 <div class="admin-card">
     <h2 class="mb-4">Edit Produk</h2>
 
-    <form action="{{ route('admin.products.update', $product->id) }}" method="POST">
+    <form action="{{ route('admin.products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -34,6 +34,19 @@
             <label class="form-label">Deskripsi</label>
             <textarea name="description" class="form-control" rows="4">{{ old('description', $product->description) }}</textarea>
         </div>
+
+        <div class="mb-3">
+            <label class="form-label">Gambar Produk</label>
+            <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+            <small class="text-muted">Kosongkan jika tidak ingin mengganti gambar.</small>
+        </div>
+
+        @if($product->image)
+            <div class="mb-3">
+                <p class="mb-2">Gambar Saat Ini:</p>
+                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" style="max-width: 220px; border-radius: 12px;">
+            </div>
+        @endif
 
         <div class="mb-3">
             <label class="form-label">Status</label>

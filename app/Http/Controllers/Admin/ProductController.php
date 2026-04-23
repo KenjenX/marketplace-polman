@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -28,14 +29,22 @@ class ProductController extends Controller
             'name' => 'required|max:255',
             'slug' => 'required|max:255|unique:products,slug',
             'description' => 'nullable',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'status' => 'required|in:active,inactive',
         ]);
+
+        $imagePath = null;
+
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('products', 'public');
+        }
 
         Product::create([
             'category_id' => $request->category_id,
             'name' => $request->name,
             'slug' => $request->slug,
             'description' => $request->description,
+            'image' => $imagePath,
             'status' => $request->status,
         ]);
 
@@ -61,14 +70,26 @@ class ProductController extends Controller
             'name' => 'required|max:255',
             'slug' => 'required|max:255|unique:products,slug,' . $product->id,
             'description' => 'nullable',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'status' => 'required|in:active,inactive',
         ]);
+
+        $imagePath = $product->image;
+
+        if ($request->hasFile('image')) {
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
+
+            $imagePath = $request->file('image')->store('products', 'public');
+        }
 
         $product->update([
             'category_id' => $request->category_id,
             'name' => $request->name,
             'slug' => $request->slug,
             'description' => $request->description,
+            'image' => $imagePath,
             'status' => $request->status,
         ]);
 
@@ -78,6 +99,10 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        if ($product->image && Storage::disk('public')->exists($product->image)) {
+            Storage::disk('public')->delete($product->image);
+        }
+
         $product->delete();
 
         return redirect()->route('admin.products.index')

@@ -15,6 +15,7 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    <th>Gambar</th>
                     <th>Kategori</th>
                     <th>Nama Produk</th>
                     <th>Slug</th>
@@ -28,6 +29,18 @@
                 @forelse($products as $product)
                     <tr>
                         <td>{{ $loop->iteration }}</td>
+                        <td>
+                            @if($product->image)
+                                <img src="{{ asset('storage/' . $product->image) }}"
+                                     alt="{{ $product->name }}"
+                                     style="width:70px; height:70px; object-fit:cover; border-radius:12px;">
+                            @else
+                                <div class="bg-light border rounded d-flex align-items-center justify-content-center text-muted"
+                                     style="width:70px; height:70px;">
+                                    No Img
+                                </div>
+                            @endif
+                        </td>
                         <td>{{ $product->category->name }}</td>
                         <td>{{ $product->name }}</td>
                         <td>{{ $product->slug }}</td>
@@ -65,7 +78,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted">Belum ada produk</td>
+                        <td colspan="9" class="text-center text-muted">Belum ada produk</td>
                     </tr>
                 @endforelse
             </tbody>

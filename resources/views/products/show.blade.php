@@ -4,9 +4,18 @@
 <div class="content-card">
     <div class="row g-4">
         <div class="col-lg-5">
-            <div class="bg-light border rounded-4 d-flex align-items-center justify-content-center" style="min-height: 320px;">
-                <span class="text-muted">Gambar produk akan ditampilkan di sini</span>
-            </div>
+            @if($product->image)
+                <img
+                    src="{{ asset('storage/' . $product->image) }}"
+                    alt="{{ $product->name }}"
+                    class="w-100 border rounded-4"
+                    style="min-height: 320px; max-height: 420px; object-fit: cover;"
+                >
+            @else
+                <div class="bg-light border rounded-4 d-flex align-items-center justify-content-center" style="min-height: 320px;">
+                    <span class="text-muted">Gambar produk belum tersedia</span>
+                </div>
+            @endif
         </div>
 
         <div class="col-lg-7">

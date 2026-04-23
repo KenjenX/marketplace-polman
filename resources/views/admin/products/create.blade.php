@@ -4,7 +4,7 @@
 <div class="admin-card">
     <h2 class="mb-4">Tambah Produk</h2>
 
-    <form action="{{ route('admin.products.store') }}" method="POST">
+    <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
         <div class="mb-3">
@@ -32,6 +32,12 @@
         <div class="mb-3">
             <label class="form-label">Deskripsi</label>
             <textarea name="description" class="form-control" rows="4">{{ old('description') }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Gambar Produk</label>
+            <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+            <small class="text-muted">Format: jpg, jpeg, png, webp. Maksimal 2MB.</small>
         </div>
 
         <div class="mb-3">

@@ -84,9 +84,18 @@
             <div class="col-md-6 col-xl-4">
                 <div class="card border-0 shadow-sm h-100 rounded-4">
                     <div class="card-body d-flex flex-column">
-                        <div class="bg-light border rounded-4 d-flex align-items-center justify-content-center mb-3" style="height: 180px;">
-                            <span class="text-muted small">Preview Produk</span>
-                        </div>
+                        @if($product->image)
+                            <img
+                                src="{{ asset('storage/' . $product->image) }}"
+                                alt="{{ $product->name }}"
+                                class="w-100 rounded-4 border mb-3"
+                                style="height: 180px; object-fit: cover;"
+                            >
+                        @else
+                            <div class="bg-light border rounded-4 d-flex align-items-center justify-content-center mb-3" style="height: 180px;">
+                                <span class="text-muted small">Preview Produk</span>
+                            </div>
+                        @endif
 
                         <div class="mb-2">
                             <span class="badge bg-light text-dark border">{{ $product->category->name }}</span>
