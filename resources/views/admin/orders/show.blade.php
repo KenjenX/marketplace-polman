@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Detail Order</title>
+    <title>Detail Order Admin</title>
 </head>
 <body>
-    <h1>Detail Order</h1>
+    <h1>Detail Order Admin</h1>
 
     @if(session('success'))
         <p>{{ session('success') }}</p>
@@ -24,7 +24,8 @@
     @endif
 
     <p><strong>Kode Order:</strong> {{ $order->order_code }}</p>
-    <p><strong>Status:</strong> {{ $order->status }}</p>
+    <p><strong>User:</strong> {{ $order->user->name }} ({{ $order->user->email }})</p>
+    <p><strong>Status Order:</strong> {{ $order->status }}</p>
     <p><strong>Metode Pembayaran:</strong> {{ $order->payment_method }}</p>
     <p><strong>Total:</strong> Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
 
@@ -36,7 +37,6 @@
     <p>{{ $order->address->full_address }}</p>
 
     <h2>Item Pesanan</h2>
-
     @foreach($order->items as $item)
         <div style="border:1px solid #000; padding:10px; margin-bottom:10px;">
             <p><strong>Produk:</strong> {{ $item->product_name }}</p>
@@ -46,12 +46,6 @@
             <p><strong>Subtotal:</strong> Rp {{ number_format($item->subtotal, 0, ',', '.') }}</p>
         </div>
     @endforeach
-
-    <h2>Instruksi Pembayaran</h2>
-    <p>Silakan transfer ke rekening berikut:</p>
-    <p><strong>Bank:</strong> BCA</p>
-    <p><strong>No. Rekening:</strong> 12345678</p>
-    <p><strong>Atas Nama:</strong> Marketplace Polman</p>
 
     <h2>Bukti Pembayaran</h2>
 
@@ -67,28 +61,50 @@
                 Lihat Bukti Pembayaran
             </a>
         </p>
+
+        @if($order->status === 'waiting_receipt_validation')
+            <h3>Validasi Pembayaran</h3>
+
+            <form action="{{ route('admin.orders.updatePaymentStatus', $order->id) }}" method="POST">
+                @csrf
+                @method('PATCH')
+
+                <div>
+                    <label>Catatan Admin</label><br>
+                    <textarea name="admin_note"></textarea>
+                </div>
+
+                <br>
+
+                <button type="submit" name="action" value="accept">Terima Pembayaran</button>
+                <button type="submit" name="action" value="reject">Tolak Pembayaran</button>
+            </form>
+        @endif
+    @else
+        <p>Belum ada bukti pembayaran.</p>
     @endif
 
-    @if(in_array($order->status, ['waiting_payment', 'payment_rejected']))
-        <form action="{{ route('orders.uploadReceipt', $order->id) }}" method="POST" enctype="multipart/form-data">
+    <h2>Status Lanjutan Order</h2>
+
+    @if($order->status === 'processing')
+        <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" style="margin-bottom: 10px;">
             @csrf
-
-            <div>
-                <label>Upload Bukti Pembayaran</label><br>
-                <input type="file" name="receipt_file" accept=".jpg,.jpeg,.png">
-            </div>
-
-            <br>
-
-            <button type="submit">
-                {{ $order->status === 'payment_rejected' ? 'Upload Ulang Bukti' : 'Upload Bukti Pembayaran' }}
-            </button>
+            @method('PATCH')
+            <input type="hidden" name="status" value="completed">
+            <button type="submit" onclick="return confirm('Selesaikan order ini?')">Selesaikan Order</button>
         </form>
-    @elseif($order->status === 'waiting_receipt_validation')
-        <p><strong>Bukti pembayaran sudah diupload, menunggu validasi admin.</strong></p>
+    @endif
+
+    @if(in_array($order->status, ['waiting_payment', 'payment_rejected', 'processing']))
+        <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="status" value="cancelled">
+            <button type="submit" onclick="return confirm('Batalkan order ini?')">Batalkan Order</button>
+        </form>
     @endif
 
     <br>
-    <a href="{{ route('orders.index') }}">Kembali ke Daftar Order</a>
+    <a href="{{ route('admin.orders.index') }}">Kembali ke Daftar Order</a>
 </body>
 </html>

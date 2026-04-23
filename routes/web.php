@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentReceiptController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -33,6 +35,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+    Route::post('/orders/{order}/upload-receipt', [PaymentReceiptController::class, 'store'])->name('orders.uploadReceipt');
 });
 
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
@@ -53,6 +57,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('variants/{variant}/edit', [ProductVariantController::class, 'edit'])->name('variants.edit');
     Route::put('variants/{variant}', [ProductVariantController::class, 'update'])->name('variants.update');
     Route::delete('variants/{variant}', [ProductVariantController::class, 'destroy'])->name('variants.destroy');
+
+    Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+    Route::patch('/orders/{order}/payment-status', [AdminOrderController::class, 'updatePaymentStatus'])->name('orders.updatePaymentStatus');
+    Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateOrderStatus'])->name('orders.updateStatus');
 });
 
 require __DIR__.'/auth.php';

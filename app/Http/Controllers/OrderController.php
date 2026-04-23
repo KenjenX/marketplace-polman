@@ -23,7 +23,7 @@ class OrderController extends Controller
             abort(403);
         }
 
-        $order->load(['address', 'items']);
+        $order->load(['address', 'items', 'paymentReceipt']);
 
         return view('orders.show', compact('order'));
     }
