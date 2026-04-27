@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Models\ProductVariant;
+use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -19,7 +20,9 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Keranjang masih kosong.');
         }
 
-        return view('checkout.index', compact('cart'));
+        $paymentMethods = PaymentMethod::where('is_active', true)->get();
+
+        return view('checkout.index', compact('cart', 'paymentMethods'));
     }
 
     public function store(Request $request)
@@ -32,7 +35,7 @@ class CheckoutController extends Controller
             'district' => 'required|max:255',
             'postal_code' => 'nullable|max:20',
             'full_address' => 'required',
-            'payment_method' => 'required|in:bank_transfer',
+            'payment_method_id' => 'required|exists:payment_methods,id',
             'notes' => 'nullable',
         ]);
 
@@ -74,6 +77,15 @@ class CheckoutController extends Controller
                 $grandTotal += $variant->price * $item->quantity;
             }
 
+            $paymentMethod = PaymentMethod::where('id', $request->payment_method_id)
+                ->where('is_active', true)
+                ->first();
+
+            if (!$paymentMethod) {
+                DB::rollBack();
+                return redirect()->route('checkout.index')->with('error', 'Metode pembayaran tidak valid atau tidak aktif.');
+            }
+
             $address = auth()->user()->addresses()->create([
                 'recipient_name' => $request->recipient_name,
                 'phone' => $request->phone,
@@ -86,9 +98,15 @@ class CheckoutController extends Controller
 
             $order = auth()->user()->orders()->create([
                 'address_id' => $address->id,
+                'payment_method_id' => $paymentMethod->id,
                 'order_code' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
                 'total_price' => $grandTotal,
-                'payment_method' => $request->payment_method,
+                'payment_method' => $paymentMethod->type,
+                'payment_method_name' => $paymentMethod->name,
+                'payment_bank_name' => $paymentMethod->bank_name,
+                'payment_account_number' => $paymentMethod->account_number,
+                'payment_account_name' => $paymentMethod->account_name,
+                'payment_instruction' => $paymentMethod->instruction,
                 'status' => 'waiting_payment',
                 'payment_deadline_at' => now()->addHours(24),
                 'notes' => $request->notes,

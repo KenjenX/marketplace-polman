@@ -47,7 +47,25 @@
                 <div class="section-title">Informasi Pemesan</div>
                 <p class="mb-1"><strong>Nama:</strong> {{ $order->user->name }}</p>
                 <p class="mb-1"><strong>Email:</strong> {{ $order->user->email }}</p>
-                <p class="mb-1"><strong>Metode Pembayaran:</strong> {{ $order->payment_method }}</p>
+                <p class="mb-1"><strong>Nama:</strong> {{ $order->user->name }}</p>
+                <p class="mb-1"><strong>Email:</strong> {{ $order->user->email }}</p>
+                <p class="mb-1"><strong>Metode Pembayaran:</strong> {{ $order->payment_method_name ?: $order->payment_method }}</p>
+
+                @if($order->payment_bank_name)
+                    <p class="mb-1"><strong>Bank:</strong> {{ $order->payment_bank_name }}</p>
+                @endif
+
+                @if($order->payment_account_number)
+                    <p class="mb-1"><strong>No. Rekening:</strong> {{ $order->payment_account_number }}</p>
+                @endif
+
+                @if($order->payment_account_name)
+                    <p class="mb-1"><strong>Atas Nama:</strong> {{ $order->payment_account_name }}</p>
+                @endif
+
+                @if($order->payment_instruction)
+                    <p class="mb-1"><strong>Instruksi:</strong> {{ $order->payment_instruction }}</p>
+                @endif
 
                 @if($order->payment_deadline_at)
                     <p class="mb-0">

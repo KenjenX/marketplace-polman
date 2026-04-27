@@ -34,6 +34,12 @@
                         Order
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.payment-methods.*') ? 'fw-bold text-warning' : '' }}"
+                    href="{{ route('admin.payment-methods.index') }}">
+                        Pembayaran
+                    </a>
+                </li>
             </ul>
 
             <div class="d-flex align-items-center gap-2">

@@ -68,10 +68,27 @@
 
             <div class="border rounded-4 p-3 mb-3 bg-light">
                 <h5 class="mb-3">Instruksi Pembayaran</h5>
-                <p class="mb-2">Silakan lakukan transfer ke rekening berikut:</p>
-                <div class="mb-2"><strong>Bank:</strong> BCA</div>
-                <div class="mb-2"><strong>No. Rekening:</strong> 12345678</div>
-                <div class="mb-0"><strong>Atas Nama:</strong> Marketplace Polman</div>
+
+                <p class="mb-2">Silakan lakukan transfer ke metode berikut:</p>
+                <div class="mb-2"><strong>Metode:</strong> {{ $order->payment_method_name ?: $order->payment_method }}</div>
+
+                @if($order->payment_bank_name)
+                    <div class="mb-2"><strong>Bank:</strong> {{ $order->payment_bank_name }}</div>
+                @endif
+
+                @if($order->payment_account_number)
+                    <div class="mb-2"><strong>No. Rekening:</strong> {{ $order->payment_account_number }}</div>
+                @endif
+
+                @if($order->payment_account_name)
+                    <div class="mb-2"><strong>Atas Nama:</strong> {{ $order->payment_account_name }}</div>
+                @endif
+
+                @if($order->payment_instruction)
+                    <div class="mt-3 text-muted">
+                        {{ $order->payment_instruction }}
+                    </div>
+                @endif
             </div>
 
             <div class="border rounded-4 p-3">

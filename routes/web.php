@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Order;
+use App\Http\Controllers\Admin\PaymentMethodController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -72,6 +73,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/payment-status', [AdminOrderController::class, 'updatePaymentStatus'])->name('orders.updatePaymentStatus');
     Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateOrderStatus'])->name('orders.updateStatus');
+    Route::resource('payment-methods', PaymentMethodController::class)->except(['show']);
 });
 
 require __DIR__.'/auth.php';

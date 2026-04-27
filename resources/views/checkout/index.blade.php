@@ -80,12 +80,34 @@
 
                 <div class="mb-3">
                     <label class="form-label">Metode Pembayaran</label>
-                    <select name="payment_method" class="form-select">
-                        <option value="bank_transfer" {{ old('payment_method') == 'bank_transfer' ? 'selected' : '' }}>
-                            Transfer Bank
-                        </option>
+                    <select name="payment_method_id" class="form-select">
+                        <option value="">-- Pilih Metode Pembayaran --</option>
+                        @foreach($paymentMethods as $paymentMethod)
+                            <option value="{{ $paymentMethod->id }}" {{ old('payment_method_id') == $paymentMethod->id ? 'selected' : '' }}>
+                                {{ $paymentMethod->name }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
+
+                @if($paymentMethods->count() > 0)
+                    <div class="mb-3">
+                        @foreach($paymentMethods as $paymentMethod)
+                            <div class="border rounded-3 p-3 mb-2">
+                                <div class="fw-semibold">{{ $paymentMethod->name }}</div>
+                                <div><strong>Bank:</strong> {{ $paymentMethod->bank_name }}</div>
+                                <div><strong>No. Rekening:</strong> {{ $paymentMethod->account_number }}</div>
+                                <div><strong>Atas Nama:</strong> {{ $paymentMethod->account_name }}</div>
+
+                                @if($paymentMethod->instruction)
+                                    <div class="mt-2 text-muted small">
+                                        {{ $paymentMethod->instruction }}
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
 
                 <div class="mb-3">
                     <label class="form-label">Catatan</label>

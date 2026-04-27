@@ -13,9 +13,15 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'address_id',
+        'payment_method_id',
         'order_code',
         'total_price',
         'payment_method',
+        'payment_method_name',
+        'payment_bank_name',
+        'payment_account_number',
+        'payment_account_name',
+        'payment_instruction',
         'status',
         'payment_deadline_at',
         'notes',
@@ -24,6 +30,11 @@ class Order extends Model
     protected $casts = [
         'payment_deadline_at' => 'datetime',
     ];
+
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class);
+    }
 
     public function user()
     {
