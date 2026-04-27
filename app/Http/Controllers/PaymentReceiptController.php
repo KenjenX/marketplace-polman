@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentReceiptController extends Controller
 {
@@ -33,6 +34,12 @@ class PaymentReceiptController extends Controller
         $path = $file->store('payment-receipts', 'public');
 
         if ($order->paymentReceipt) {
+            $oldReceiptFile = $order->paymentReceipt->receipt_file;
+
+            if ($oldReceiptFile && Storage::disk('public')->exists($oldReceiptFile)) {
+                Storage::disk('public')->delete($oldReceiptFile);
+            }
+
             $order->paymentReceipt()->update([
                 'receipt_file' => $path,
                 'validation_status' => 'pending',
