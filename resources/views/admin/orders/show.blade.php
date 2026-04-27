@@ -47,8 +47,6 @@
                 <div class="section-title">Informasi Pemesan</div>
                 <p class="mb-1"><strong>Nama:</strong> {{ $order->user->name }}</p>
                 <p class="mb-1"><strong>Email:</strong> {{ $order->user->email }}</p>
-                <p class="mb-1"><strong>Nama:</strong> {{ $order->user->name }}</p>
-                <p class="mb-1"><strong>Email:</strong> {{ $order->user->email }}</p>
                 <p class="mb-1"><strong>Metode Pembayaran:</strong> {{ $order->payment_method_name ?: $order->payment_method }}</p>
 
                 @if($order->payment_bank_name)
