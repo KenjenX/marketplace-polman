@@ -23,8 +23,11 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'account_type',
+        'phone',
+        'company_name',
+        'contact_person',
     ];
-
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -46,6 +49,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        if ($this->account_type === 'company' && $this->company_name) {
+            return $this->company_name;
+        }
+
+        return $this->name;
     }
 
     public function cart()
