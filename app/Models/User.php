@@ -27,6 +27,12 @@ class User extends Authenticatable
         'phone',
         'company_name',
         'contact_person',
+        'default_recipient_name',
+        'default_province',
+        'default_city',
+        'default_district',
+        'default_postal_code',
+        'default_full_address',
     ];
     /**
      * The attributes that should be hidden for serialization.
