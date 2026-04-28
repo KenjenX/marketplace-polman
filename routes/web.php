@@ -15,6 +15,8 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Order;
 use App\Http\Controllers\Admin\PaymentMethodController;
+Route::view('/about', 'about')->name('about');
+Route::view('/contact', 'contact')->name('contact');
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -23,8 +25,8 @@ use App\Http\Controllers\Admin\PaymentMethodController;
 Route::get('/', [ProductController::class, 'home'])->name('home');
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    return redirect()->route('home');
+})->middleware(['auth'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

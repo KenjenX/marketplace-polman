@@ -10,6 +10,13 @@
         body {
             background-color: #eaf3fa;
             color: #1b2a41;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .store-main {
+            flex: 1;
         }
 
         .store-navbar {
@@ -100,14 +107,14 @@
 <body>
     @include('partials.store-navbar')
 
-    <main class="page-section">
+    <main class="page-section store-main">
         <div class="container">
             @include('partials.alerts')
             @yield('content')
         </div>
     </main>
 
-    <footer class="footer-simple py-4 bg-white">
+    <footer class="footer-simple py-4 bg-white mt-auto">
         <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
             <div>Marketplace Polman</div>
             <div>Solusi manufaktur, pengecoran, dan elektronik industri.</div>
