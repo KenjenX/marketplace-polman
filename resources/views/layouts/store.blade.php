@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Marketplace Polman' }}</title>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -20,7 +20,7 @@
         }
 
         .store-navbar {
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: #013780;
             border-bottom: 1px solid #d9e6f2;
         }
 
@@ -114,12 +114,7 @@
         </div>
     </main>
 
-    <footer class="footer-simple py-4 bg-white mt-auto">
-        <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
-            <div>Marketplace Polman</div>
-            <div>Solusi manufaktur, pengecoran, dan elektronik industri.</div>
-        </div>
-    </footer>
+    @include('partials.store-footer')
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')

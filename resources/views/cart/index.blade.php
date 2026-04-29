@@ -1,75 +1,210 @@
 @extends('layouts.store')
 
 @section('content')
-<div class="content-card">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-1">Keranjang Belanja</h2>
-            <p class="text-muted mb-0">Periksa kembali produk sebelum checkout.</p>
+<div class="container py-4">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold mb-0">Keranjang Belanja</h4>
+                <span class="text-muted" style="font-size: 0.9rem;">({{ $cart->items->count() }} Produk)</span>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 mb-3">
+                <div class="card-body py-3">
+                    <div class="form-check d-flex align-items-center">
+                        <input class="form-check-input" type="checkbox" id="selectAll" checked style="width: 1.2rem; height: 1.2rem;">
+                        <label class="form-check-label fw-semibold ms-2" for="selectAll" style="cursor: pointer;">Pilih Semua</label>
+                    </div>
+                </div>
+            </div>
+
+            @forelse($cart->items as $item)
+            <div class="card border-0 shadow-sm rounded-4 mb-3 cart-item-row" 
+                 data-id="{{ $item->id }}" 
+                 data-name="{{ $item->variant->product->name }}"
+                 data-price="{{ $item->variant->price }}">
+                <div class="card-body">
+                    <div class="d-flex align-items-start">
+                        <div class="form-check mt-md-4 me-2 me-md-3">
+                            <input class="form-check-input item-checkbox" type="checkbox" value="{{ $item->id }}" checked style="width: 1.2rem; height: 1.2rem;">
+                        </div>
+
+                        <a href="{{ route('products.show', $item->variant->product->slug) }}" class="text-decoration-none">
+                            <div class="rounded-3 border overflow-hidden me-3 img-hover-effect" style="width: 90px; height: 90px; flex-shrink: 0;">
+                                <img src="{{ $item->variant->product->image ? asset('storage/' . $item->variant->product->image) : asset('assets/img/no-image.png') }}" 
+                                     class="w-100 h-100 object-fit-cover" alt="Produk">
+                            </div>
+                        </a>
+
+                        <div class="flex-grow-1">
+                            <a href="{{ route('products.show', $item->variant->product->slug) }}" class="text-decoration-none text-dark">
+                                <h6 class="fw-bold mb-1 hover-primary">{{ $item->variant->product->name }}</h6>
+                            </a>
+                            <div class="mb-2">
+                                <span class="badge bg-light text-secondary border fw-normal" style="font-size: 0.75rem;">
+                                    Variasi: {{ $item->variant->name }}
+                                </span>
+                            </div>
+                            <p class="fw-bold text-primary mb-0">Rp {{ number_format($item->variant->price, 0, ',', '.') }}</p>
+                        </div>
+
+                        <div class="text-end d-flex flex-column align-items-end justify-content-between" style="min-height: 90px;">
+                            <form id="delete-form-{{ $item->id }}" action="{{ route('cart.destroy', $item->id) }}" method="POST" style="display:none;">
+                                @csrf
+                                @method('DELETE')
+                            </form>
+                            
+                            <button type="button" class="btn btn-link text-muted p-0 hover-danger btn-delete-manual">
+                                <i class="bi bi-trash fs-5"></i>
+                            </button>
+
+                            <div class="qty-wrapper text-center">
+                                <div class="input-group input-group-sm mb-1" style="width: 110px;">
+                                    <button class="btn btn-outline-primary btn-minus rounded-start-pill" type="button">-</button>
+                                    <input type="number" class="form-control text-center qty-input border-primary-subtle" 
+                                           value="{{ $item->quantity }}" 
+                                           min="1" 
+                                           max="{{ $item->variant->stock }}" readonly>
+                                    <button class="btn btn-outline-primary btn-plus rounded-end-pill" type="button">+</button>
+                                </div>
+                                <small class="text-muted d-block" style="font-size: 0.7rem;">Stok: <b>{{ $item->variant->stock }}</b></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @empty
+            <div class="card border-0 shadow-sm rounded-4 py-5 text-center">
+                <div class="card-body">
+                    <i class="bi bi-cart-x display-1 text-muted mb-3"></i>
+                    <h5>Keranjangmu masih kosong</h5>
+                    <a href="{{ route('products.index') }}" class="btn btn-primary mt-2 px-4 rounded-pill">Mulai Belanja</a>
+                </div>
+            </div>
+            @endforelse
         </div>
-        <a href="{{ route('products.index') }}" class="btn btn-outline-primary">Lanjut Belanja</a>
-    </div>
 
-    @php
-        $grandTotal = 0;
-    @endphp
-
-    @forelse($cart->items as $item)
-        @php
-            $subtotal = $item->variant->price * $item->quantity;
-            $grandTotal += $subtotal;
-        @endphp
-
-        <div class="border rounded-4 p-3 mb-3">
-            <div class="row g-3 align-items-center">
-                <div class="col-lg-5">
-                    <h5 class="mb-1">{{ $item->variant->product->name }}</h5>
-                    <p class="mb-1"><strong>Variasi:</strong> {{ $item->variant->name }}</p>
-                    <p class="mb-1 text-muted">{{ $item->variant->specification }}</p>
-                    <p class="mb-1">Harga: Rp {{ number_format($item->variant->price, 0, ',', '.') }}</p>
-                    <small class="text-muted">Stok tersedia: {{ $item->variant->stock }}</small>
-                </div>
-
-                <div class="col-lg-3">
-                    <form action="{{ route('cart.update', $item->id) }}" method="POST" class="d-flex gap-2">
-                        @csrf
-                        @method('PATCH')
-                        <input type="number" name="quantity" value="{{ $item->quantity }}" min="1" max="{{ $item->variant->stock }}" class="form-control">
-                        <button type="submit" class="btn btn-outline-primary">Update</button>
-                    </form>
-                </div>
-
-                <div class="col-lg-2 text-lg-center">
-                    <div class="fw-semibold">Rp {{ number_format($subtotal, 0, ',', '.') }}</div>
-                </div>
-
-                <div class="col-lg-2 text-lg-end">
-                    <form action="{{ route('cart.destroy', $item->id) }}" method="POST">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Hapus item ini dari keranjang?')">
-                            Hapus
-                        </button>
-                    </form>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 100px; z-index: 10;">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-4">Ringkasan Belanja</h5>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Total Harga (<span id="selectedCount">0</span> barang)</span>
+                        <span id="totalPriceDisplay" class="fw-bold">Rp 0</span>
+                    </div>
+                    <hr class="text-muted opacity-25">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <span class="fw-bold fs-5">Total Bayar</span>
+                        <h4 class="fw-bold text-primary mb-0" id="grandTotalPrice">Rp 0</h4>
+                    </div>
+                    <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm" id="checkoutBtn" disabled>
+                        Beli (<span id="btnCount">0</span>)
+                    </button>
                 </div>
             </div>
         </div>
-    @empty
-        <div class="alert alert-secondary mb-0">
-            Keranjang masih kosong.
-        </div>
-    @endforelse
-
-    <hr>
-
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <h4 class="mb-0">Total: Rp {{ number_format($grandTotal, 0, ',', '.') }}</h4>
-
-        @if($cart->items->count() > 0)
-            <a href="{{ route('checkout.index') }}" class="btn btn-primary btn-lg">
-                Lanjut ke Checkout
-            </a>
-        @endif
     </div>
 </div>
+
+<style>
+    .hover-danger:hover { color: #dc3545 !important; }
+    .hover-primary:hover { color: #0d6efd !important; }
+    .img-hover-effect:hover { opacity: 0.8; transition: 0.2s; }
+    .qty-input { background-color: #fff !important; font-weight: 600; }
+</style>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rows = document.querySelectorAll('.cart-item-row');
+    const selectAll = document.getElementById('selectAll');
+    const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+    const grandTotalPriceDisplay = document.getElementById('grandTotalPrice');
+    const totalPriceDisplay = document.getElementById('totalPriceDisplay');
+    const selectedCountDisplay = document.getElementById('selectedCount');
+    const btnCountDisplay = document.getElementById('btnCount');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+
+    function updateSummary() {
+        let total = 0;
+        let count = 0;
+        rows.forEach(row => {
+            const checkbox = row.querySelector('.item-checkbox');
+            const qtyInput = row.querySelector('.qty-input');
+            const price = parseInt(row.dataset.price);
+            const qty = parseInt(qtyInput.value);
+            if (checkbox.checked) {
+                total += price * qty;
+                count += qty;
+            }
+        });
+        const formattedTotal = 'Rp ' + total.toLocaleString('id-ID');
+        grandTotalPriceDisplay.innerText = formattedTotal;
+        totalPriceDisplay.innerText = formattedTotal;
+        selectedCountDisplay.innerText = count;
+        btnCountDisplay.innerText = count;
+        checkoutBtn.disabled = count === 0;
+    }
+
+    function confirmDelete(id, name) {
+        Swal.fire({
+            title: 'Hapus Barang?',
+            text: `Apakah yakin menghapus "${name}" dari keranjang?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Iya, Hapus!',
+            cancelButtonText: 'Tidak'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`delete-form-${id}`).submit();
+            }
+        });
+    }
+
+    rows.forEach(row => {
+        const btnMinus = row.querySelector('.btn-minus');
+        const btnPlus = row.querySelector('.btn-plus');
+        const btnTrash = row.querySelector('.btn-delete-manual');
+        const qtyInput = row.querySelector('.qty-input');
+        const id = row.dataset.id;
+        const name = row.dataset.name;
+        const maxStock = parseInt(qtyInput.getAttribute('max'));
+
+        btnPlus.addEventListener('click', () => {
+            if (parseInt(qtyInput.value) < maxStock) {
+                qtyInput.value = parseInt(qtyInput.value) + 1;
+                updateSummary();
+            }
+        });
+
+        btnMinus.addEventListener('click', () => {
+            if (parseInt(qtyInput.value) > 1) {
+                qtyInput.value = parseInt(qtyInput.value) - 1;
+                updateSummary();
+            } else {
+                confirmDelete(id, name);
+            }
+        });
+
+        btnTrash.addEventListener('click', () => confirmDelete(id, name));
+    });
+
+    selectAll.addEventListener('change', function() {
+        itemCheckboxes.forEach(cb => cb.checked = this.checked);
+        updateSummary();
+    });
+
+    itemCheckboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+            selectAll.checked = Array.from(itemCheckboxes).every(c => c.checked);
+            updateSummary();
+        });
+    });
+
+    updateSummary();
+});
+</script>
+@endpush
 @endsection

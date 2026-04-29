@@ -63,7 +63,10 @@ class CartController extends Controller
             ]);
         }
 
-        return redirect()->route('cart.index')->with('success', 'Produk berhasil ditambahkan ke keranjang.');
+       return redirect()->back()->with([
+            'success' => 'Produk berhasil ditambahkan ke keranjang!',
+            'swal_type' => 'cart_added' 
+        ]);
     }
 
     public function update(Request $request, CartItem $item)

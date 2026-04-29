@@ -30,42 +30,139 @@
 </div>
 
 <section id="kategori" class="mb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+   {{-- Bagian Kategori Utama dengan Tombol Custom kiri.png & kanan.png --}}
+<div class="container py-5 position-relative">
+    <div class="d-flex justify-content-between align-items-end mb-4">
         <div>
-            <h2 class="mb-1">Kategori Utama</h2>
+            <h2 class="fw-bold text-dark mb-1" style="letter-spacing: -1px;">Shop by Category</h2>
             <p class="text-muted mb-0">Pilih kategori sesuai kebutuhan industri dan pembelajaran.</p>
         </div>
     </div>
 
-    <div class="row g-4">
-        @forelse($categories as $category)
-            <div class="col-md-6 col-xl-3">
-                <div class="card border-0 shadow-sm h-100 rounded-4">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <span class="badge bg-primary-subtle text-primary border">Kategori</span>
-                        </div>
-                        <h5 class="card-title">{{ $category->name }}</h5>
-                        <p class="card-text text-muted">
-                            {{ $category->description ?: 'Kategori produk untuk kebutuhan marketplace Polman.' }}
-                        </p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">{{ $category->products_count }} produk</small>
-                            <a href="{{ route('products.index', ['category' => $category->id]) }}" class="btn btn-outline-primary btn-sm">
-                                Lihat
-                            </a>
+    <div class="position-relative slider-wrapper">
+        <div class="slider-nav nav-left" id="slide-left">
+            <img src="{{ asset('assets/img/kiri.png') }}" alt="Kiri" style="width: 40px; height: auto;">
+        </div>
+
+        <div class="category-slider" id="category-slider">
+            @foreach($categories as $category)
+            <div class="category-item">
+                <a href="{{ route('products.index', ['category' => $category->slug ?? $category->id]) }}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 category-card">
+                        <div class="card-body p-0 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div class="badge rounded-pill bg-white text-primary px-3 py-2 shadow-sm" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">
+                                    Kategori
+                                </div>
+                                <div class="arrow-icon">
+                                    <i class="bi bi-arrow-up-right fs-5 text-muted"></i>
+                                </div>
+                            </div>
+                            
+                            <h3 class="fw-bold text-dark mb-3" style="font-size: 20px; letter-spacing: -0.5px;">
+                                {{ $category->name }}
+                            </h3>
+                            
+                            <p class="text-muted mb-4" style="font-size: 13px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                {{ $category->description ?? 'Macam-macam produk kategori ' . $category->name }}
+                            </p>
+
+                            <div class="mt-auto pt-2 d-flex align-items-center text-primary fw-bold" style="font-size: 12px;">
+                                <span>{{ $category->products_count ?? 0 }} Produk</span>
+                                <div class="flex-grow-1 border-bottom ms-2 opacity-25"></div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
-        @empty
-            <div class="col-12">
-                <div class="alert alert-secondary mb-0">
-                    Belum ada kategori.
-                </div>
-            </div>
-        @endforelse
+            @endforeach
+        </div>
+
+        <div class="slider-nav nav-right" id="slide-right">
+            <img src="{{ asset('assets/img/kanan.png') }}" alt="Kanan" style="width: 40px; height: auto;">
+        </div>
     </div>
+</div>
+
+<style>
+    .slider-wrapper { padding: 0 10px; position: relative; }
+    
+    .category-slider {
+        display: flex;
+        overflow-x: auto;
+        gap: 20px;
+        padding: 15px 5px 35px 5px;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        scroll-behavior: smooth;
+    }
+
+    .category-slider::-webkit-scrollbar { display: none; }
+
+    .category-item {
+        flex: 0 0 300px;
+        scroll-snap-align: start;
+    }
+
+    @media (min-width: 992px) {
+        .category-item { flex: 0 0 350px; }
+    }
+
+    /* Styling Tombol Navigasi Custom */
+    .slider-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .nav-left { left: -30px; }
+    .nav-right { right: -30px; }
+
+    .slider-nav:hover {
+        transform: translateY(-50%) scale(1.1);
+        filter: brightness(1.2);
+    }
+
+    .slider-nav:active {
+        transform: translateY(-50%) scale(0.9);
+    }
+
+    .category-card {
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+        border: 1px solid transparent !important;
+    }
+
+    .category-card:hover {
+        background-color: #ffffff !important;
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+        border-color: #0d6efd !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.getElementById('category-slider');
+        const btnLeft = document.getElementById('slide-left');
+        const btnRight = document.getElementById('slide-right');
+
+        // Sesuaikan jumlah scroll dengan lebar card
+        const scrollAmount = 370; 
+
+        btnRight.addEventListener('click', () => {
+            slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        });
+
+        btnLeft.addEventListener('click', () => {
+            slider.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        });
+    });
+</script>
 </section>
 
 <section class="mb-4">

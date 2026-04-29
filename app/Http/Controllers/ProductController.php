@@ -27,52 +27,91 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
+        // 1. Mulai Query Produk (Sekali saja)
+        $query = Product::with(['category', 'variants'])
+            ->where('status', 'active');
+
+        // 2. Filter Kategori (Mendukung ID atau Slug)
+        if ($request->has('category') && $request->category != '') {
+            $categoryFilter = $request->category;
+
+            $query->whereHas('category', function ($q) use ($categoryFilter) {
+                if (is_numeric($categoryFilter)) {
+                    $q->where('id', $categoryFilter);
+                } else {
+                    $q->where('slug', $categoryFilter);
+                }
+            });
+        }
+
+        // 3. Filter Search
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('description', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // 4. Logika Sorting
+        if ($request->has('sort')) {
+            switch ($request->sort) {
+                case 'az':
+                    $query->orderBy('name', 'asc');
+                    break;
+                case 'za':
+                    $query->orderBy('name', 'desc');
+                    break;
+                case 'newest':
+                    $query->orderBy('created_at', 'desc');
+                    break;
+                case 'price_low':
+                    $query->withMin('variants', 'price')->orderBy('variants_min_price', 'asc');
+                    break;
+                case 'price_high':
+                    $query->withMin('variants', 'price')->orderBy('variants_min_price', 'desc');
+                    break;
+                default:
+                    $query->latest();
+                    break;
+            }
+        } else {
+            $query->latest();
+        }
+
+        // 5. Eksekusi Pagination
+        $products = $query->paginate(20)->withQueryString();
+
+        // 6. Ambil Data Pendukung untuk Sidebar/UI
         $categories = Category::withCount(['products' => function ($query) {
             $query->where('status', 'active');
-        }])
-        ->orderBy('name')
-        ->get();
+        }])->orderBy('name')->get();
 
-        $products = Product::with(['category', 'variants'])
-            ->where('status', 'active')
-            ->when($request->category, function ($query) use ($request) {
-                $query->where('category_id', $request->category);
-            })
-            ->when($request->search, function ($query) use ($request) {
-                $query->where(function ($q) use ($request) {
-                    $q->where('name', 'like', '%' . $request->search . '%')
-                    ->orWhere('description', 'like', '%' . $request->search . '%');
-                });
-            })
-            ->latest()
-            ->get();
-
-        $sidebarProducts = Product::with(['category', 'variants'])
-            ->where('status', 'active')
-            ->latest()
-            ->take(4)
-            ->get();
-
+        $sidebarProducts = Product::where('status', 'active')->latest()->take(4)->get();
+        
+        // Cari category yang terpilih agar di UI bisa muncul nama kategorinya
         $selectedCategory = null;
-
         if ($request->category) {
-            $selectedCategory = Category::find($request->category);
+            $selectedCategory = Category::where('id', $request->category)
+                                        ->orWhere('slug', $request->category)
+                                        ->first();
         }
 
         return view('products.index', compact(
-            'products',
-            'categories',
-            'sidebarProducts',
+            'products', 
+            'categories', 
+            'sidebarProducts', 
             'selectedCategory'
         ));
     }
 
     public function show(Product $product)
     {
+        // Memuat relasi category dan varian yang aktif saja
         $product->load(['category', 'variants' => function ($query) {
             $query->where('status', 'active');
         }]);
 
+        // Jika produk utama tidak aktif, kasih 404
         if ($product->status !== 'active') {
             abort(404);
         }

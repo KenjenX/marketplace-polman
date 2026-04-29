@@ -1,3 +1,73 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ============================================================
+   Katalog Produk Polman - Ukuran Compact (1/4 Size)
+   ============================================================ */
+
+/* --- JURUS PAKSA KECIL --- */
+
+.product-card-clean {
+    border: none !important;
+    background: transparent;
+    transition: transform 0.3s ease;
+    /* KUNCI LEBAR MAKSIMAL: Agar tidak meledak satu halaman */
+    max-width: 150px !important; 
+    margin: 0 auto; /* Biar tetap di tengah kolom */
+}
+
+.card-image-wrapper {
+    width: 150px !important; /* Paksa lebar kotak */
+    height: 150px !important; /* Paksa tinggi kotak */
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.product-image-full, 
+.product-image-placeholder-full {
+    max-width: 90% !important; /* Biar ada ruang kosong dikit di pinggir */
+    max-height: 90% !important;
+    object-fit: contain !important;
+    display: block;
+}
+
+.product-name-clean {
+    font-weight: 700;
+    font-size: 0.85rem; /* Font kecil biar estetik */
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-align: center; /* Rata tengah biar rapi */
+}
+
+.product-category-clean {
+    font-size: 0.7rem;
+    text-align: center;
+    text-transform: uppercase;
+    color: #6c757d;
+}
+
+/* --- INTERAKSI HOVER --- */
+.product-card-clean:hover {
+    transform: translateY(-3px);
+}
+
+.product-card-clean:hover .product-image-full {
+    transform: scale(1.15); /* Zoom lebih terasa karena kotaknya kecil */
+}
+
+.product-card-clean:hover .product-image-placeholder-full {
+    transform: scale(1);
+    opacity: 0.8;
+}
+
+.product-image-placeholder-full {
+    opacity: 0.5;
+}
