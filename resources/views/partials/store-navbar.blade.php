@@ -1,3 +1,8 @@
+{{-- Favicon POLMAN Bandung --}}
+    <link rel="icon" type="image/png" href="{{ asset('assets/img/logo-polman.png') }}">
+    
+    {{-- Teks Judul di Tab --}}
+    <title>{{ $title ?? 'Marketplace POLMAN Bandung' }}</title>
 <style>
     /* 1. Base Navbar (Menggunakan warna Biru Navy dari kode kamu) */
     .store-navbar {
