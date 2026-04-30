@@ -117,7 +117,7 @@
 
 <style>
     .hover-danger:hover { color: #dc3545 !important; }
-    .hover-primary:hover { color: #0d6efd !important; }
+    .hover-primary:hover { color: #013780 !important; }
     .img-hover-effect:hover { opacity: 0.8; transition: 0.2s; }
     .qty-input { background-color: #fff !important; font-weight: 600; }
 </style>
@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
             text: `Apakah yakin menghapus "${name}" dari keranjang?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#0d6efd',
+            confirmButtonColor: '#013780',
             cancelButtonColor: '#6c757d',
             confirmButtonText: 'Iya, Hapus!',
             cancelButtonText: 'Tidak'
@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const btnPlus = row.querySelector('.btn-plus');
         const qtyInput = row.querySelector('.qty-input');
         const id = row.dataset.id;
+        const name = row.dataset.name;
         const maxStock = parseInt(qtyInput.getAttribute('max'));
 
         btnPlus.addEventListener('click', () => {
@@ -200,12 +201,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        {{-- Logika diperbaiki untuk memicu notifikasi hapus saat qty mencapai 1 --}}
         btnMinus.addEventListener('click', () => {
-            if (parseInt(qtyInput.value) > 1) {
-                let val = parseInt(qtyInput.value) - 1;
+            let currentVal = parseInt(qtyInput.value);
+            if (currentVal > 1) {
+                let val = currentVal - 1;
                 qtyInput.value = val;
                 updateQty(id, val);
                 updateSummary();
+            } else if (currentVal === 1) {
+                window.confirmDelete(id, name);
             }
         });
     });

@@ -50,7 +50,6 @@
                             <div class="card border-0 shadow-sm rounded-0 p-4 p-md-5">
                                 <div class="d-flex justify-content-between align-items-center mb-4">
                                     <h4 class="fw-bold mb-0">Informasi Profil</h4>
-                                    <a href="{{ route('home') }}" class="btn btn-light btn-sm rounded-0 px-3 border shadow-none">Kembali</a>
                                 </div>
                                 
                                 <form method="POST" action="{{ route('profile.update') }}">

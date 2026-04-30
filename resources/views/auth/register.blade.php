@@ -45,7 +45,7 @@
                     {{-- Field Dinamis --}}
                     <div id="individual_fields" class="mb-4">
                         <label class="form-label small fw-bold text-muted">Nama Lengkap</label>
-                        <input id="name" type="text" name="name" value="{{ old('name') }}" class="form-control border-0 bg-light py-3 rounded-3 shadow-none" placeholder="Masukkan nama sesuai KTP">
+                        <input id="name" type="text" name="name" value="{{ old('name') }}" class="form-control border-0 bg-light py-3 rounded-3 shadow-none" placeholder="Masukkan nama">
                     </div>
 
                     <div id="company_fields" class="d-none">
