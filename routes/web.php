@@ -15,14 +15,14 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Order;
 use App\Http\Controllers\Admin\PaymentMethodController;
+use App\Http\Controllers\HomeController; // Pastikan ini ada
+
 Route::view('/about', 'about')->name('about');
 Route::view('/contact', 'contact')->name('contact');
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
-
-Route::get('/', [ProductController::class, 'home'])->name('home');
+// PERBAIKAN DI SINI:
+// Kita arahkan ke HomeController@index agar variabel $products dan $categories terkirim
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/dashboard', function () {
     return redirect()->route('home');
