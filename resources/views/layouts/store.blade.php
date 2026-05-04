@@ -109,7 +109,7 @@
     @include('partials.store-navbar')
 
     <main class="page-section store-main">
-        <div class="container">
+        <div>
             @include('partials.alerts')
             @yield('content')
         </div>

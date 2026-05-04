@@ -1,60 +1,99 @@
-{{-- Favicon POLMAN Bandung --}}
-    <link rel="icon" type="image/png" href="{{ asset('assets/img/logo-polman.png') }}">
-    
-    {{-- Teks Judul di Tab --}}
-    <title>{{ $title ?? 'Marketplace POLMAN Bandung' }}</title>
 <style>
-    /* 1. Base Navbar (Menggunakan warna Biru Navy dari kode kamu) */
+    /* 1. Base Navbar (Background Putih Transparan) */
     .store-navbar {
-        background-color: #013780 !important;
-        padding: 15px 0; /* Sedikit lebih tinggi agar lega */
-        border-bottom: 3px solid #FFD700; /* Garis emas identitas Polman */
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(8px);
+        padding: 15px 0; 
+        border-bottom: 2px solid #f0f0f0; 
     }
 
     /* 2. Styling Logo & Brand */
     .navbar-logo {
-        height: 35px; /* Sedikit dikecilkan agar proporsional */
+        height: 35px;
         width: auto;
         object-fit: contain;
     }
 
     .store-brand {
-        color: white !important;
+        color: #013780 !important;
         font-weight: 700;
-        font-size: 1.2rem; /* Sedikit dikecilkan agar sejajar menu */
+        font-size: 1.2rem; 
         letter-spacing: -0.3px;
         text-transform: uppercase;
     }
 
-    /* 3. Link Navbar (Menggunakan Font Modern, Putih, Tanpa Opsitas saat Aktif) */
+    /* 3. Link Navbar - Efek Underline Hanya untuk Link Biasa */
     .store-navbar .nav-link {
-        color: white !important;
-        font-weight: 500;
-        font-size: 13px; /* Ukuran font menu lebih kecil, ala gambar 2 */
+        color: #013780 !important;
+        font-weight: 600;
+        font-size: 13px; 
         letter-spacing: 0.5px;
-        text-transform: uppercase; /* Agar rapi semua huruf kapital */
-        padding-left: 15px !important;
-        padding-right: 15px !important;
-        opacity: 1 !important; /* Hapus efek redup agar jelas terbaca */
-        transition: 0.3s;
+        text-transform: uppercase; 
+        padding: 8px 15px !important;
+        position: relative;
+        transition: all 0.3s ease;
+        border-radius: 8px; /* Untuk efek hover di dropdown */
     }
 
-    /* Efek hover tipis (misal garis bawah emas) */
-    .store-navbar .nav-link:hover {
-        color: #FFD700 !important;
+    /* Garis bawah emas hanya untuk yang BUKAN dropdown */
+    .store-navbar .nav-item:not(.dropdown) .nav-link::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: 5px;
+        left: 15px;
+        background-color: #FFD700;
+        transition: width 0.3s ease;
     }
 
-    /* Dropdown Arrow (Invert warna agar putih) */
+    .store-navbar .nav-item:not(.dropdown) .nav-link:hover::after {
+        width: calc(100% - 30px);
+    }
+
+    /* Efek Hover Khusus Dropdown (Glow halus, bukan garis) */
+    .store-navbar .nav-item.dropdown .nav-link:hover {
+        background-color: rgba(1, 55, 128, 0.05) !important;
+        color: #013780 !important;
+    }
+
+    /* Dropdown Arrow */
     .store-navbar .dropdown-toggle::after {
-        filter: invert(1);
+        vertical-align: middle;
+        margin-left: 5px;
+        filter: invert(15%) sepia(61%) saturate(3505%) hue-rotate(200deg) brightness(92%) contrast(105%);
     }
 
-    /* 4. Dropdown Menu (Tetap Putih agar terbaca) */
+    /* 4. Dropdown Menu - Dibuat Mewah */
+    .dropdown-menu {
+        border: none !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+        border-radius: 12px !important;
+        padding: 10px !important;
+        margin-top: 10px !important; /* Jarak dari navbar */
+        border-top: 3px solid #FFD700 !important; /* Aksen emas di atas menu */
+    }
+
     .dropdown-menu .dropdown-item {
-        color: #333 !important;
+        color: #013780 !important;
         background-color: white !important;
         font-size: 13px;
-        text-transform: none; /* Dropdown tidak perlu kapital semua */
+        border-radius: 8px;
+        padding: 10px 15px !important;
+        transition: all 0.2s ease;
+        font-weight: 500;
+    }
+    
+    .dropdown-menu .dropdown-item:hover {
+        background-color: #f0f7ff !important;
+        color: #013780 !important;
+        padding-left: 20px !important; /* Efek geser dikit saat hover */
+    }
+
+    .dropdown-divider {
+        border-top: 1px solid rgba(0, 0, 0, 0.05); /* Hitam dengan transparansi sangat tinggi */
+        margin: 8px 10px; /* Memberi jarak kiri-kanan agar tidak mentok ke pinggir kotak */
+        opacity: 1; /* Memastikan border-top yang mengontrol tampilannya */
     }
 </style>
 
@@ -66,15 +105,15 @@
             <span class="ms-3 d-none d-sm-inline">Marketplace Polman</span>
         </a>
 
-        {{-- Toggler Mobile (Invert agar putih) --}}
+        {{-- Toggler Mobile --}}
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#storeNavbar">
-            <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+            <span class="navbar-toggler-icon" style="filter: invert(15%) sepia(61%) saturate(3505%) hue-rotate(200deg) brightness(92%) contrast(105%);"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="storeNavbar">
-            {{-- Menu Tengah: Posisi Menu Utama di Kiri (ala Gambar 2) --}}
+            {{-- Menu Tengah --}}
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-lg-2">
-                {{-- Dropdown Katalog (Ganti 'Shop') --}}
+                {{-- Dropdown Katalog Kembali ke Awal --}}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="katalogDropdown" role="button" data-bs-toggle="dropdown">
                         Katalog
@@ -87,12 +126,12 @@
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         
-                        {{-- Loop Kategori Terbanyak --}}
+                        {{-- Loop Kategori (Mencatat pilihan ke checkbox array) --}}
                         @foreach($topCategories as $cat)
                             <li>
                                 <a class="dropdown-item py-2 d-flex justify-content-between align-items-center" 
-                                href="{{ route('products.index', ['category' => $cat->slug]) }}">
-                                    {{ $cat->name }}
+                                   href="{{ route('products.index', ['categories' => [$cat->slug]]) }}">
+                                    <span>{{ $cat->name }}</span>
                                     <span class="badge rounded-pill bg-light text-muted border ms-2" style="font-size: 10px;">
                                         {{ $cat->products_count }}
                                     </span>
@@ -110,10 +149,9 @@
                 </li>
             </ul>
 
-            {{-- Menu Kanan: User Section (ala Gambar 2) --}}
+            {{-- Menu Kanan: User Section --}}
             <ul class="navbar-nav align-items-lg-center gap-lg-3">
                 @auth
-                    {{-- User Dropdown (Ganti 'Account') --}}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle store-nav-link" href="#" role="button" data-bs-toggle="dropdown">
                             {{ auth()->user()->display_name ?? auth()->user()->name }}
@@ -135,24 +173,18 @@
                         </ul>
                     </li>
 
-                    {{-- Icon Keranjang Baru Menggunakan shopping-cart.png --}}
                     <li class="nav-item">
                         <a class="nav-link position-relative px-2 {{ request()->routeIs('cart.index') ? 'active' : '' }}" 
-                        href="{{ route('cart.index') }}">
-                            {{-- Menggunakan file gambar shopping-cart.png --}}
-                            <img src="{{ asset('assets/img/shopping-cart.png') }}" alt="Cart" style="height: 22px; width: auto; filter: brightness(0) invert(1);">
-                            
+                           href="{{ route('cart.index') }}">
+                            <img src="{{ asset('assets/img/shopping-cart.png') }}" alt="Cart" style="height: 22px; width: auto; filter: invert(15%) sepia(61%) saturate(3505%) hue-rotate(200deg) brightness(92%) contrast(105%);">
                             @auth
                                 @php
-                                    // Hitung total quantity dari semua item di keranjang user yang login
                                     $cartCount = \App\Models\CartItem::whereHas('cart', function($query) {
                                         $query->where('user_id', auth()->id());
                                     })->sum('quantity');
                                 @endphp
-
                                 @if($cartCount > 0)
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
-                                        style="font-size: 9px; padding: 4px 6px; border: 2px solid #013780;">
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 9px; padding: 4px 6px; border: 2px solid white;">
                                         {{ $cartCount > 99 ? '99+' : $cartCount }}
                                     </span>
                                 @endif
@@ -160,13 +192,11 @@
                         </a>
                     </li>
                 @else
-                    {{-- Ganti 'Login' jadi tombol minimalis --}}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('login') }}">Login</a>
                     </li>
                     <li class="nav-item ms-lg-2">
-                        {{-- Tombol Register dibuat menonjol tapi tetap minimalis --}}
-                        <a class="btn btn-light rounded-pill px-4" style="font-size: 12px; font-weight: 700; color: #013780;" href="{{ route('register') }}">Daftar</a>
+                        <a class="btn rounded-pill px-4" style="background-color: #013780; color: white; font-size: 12px; font-weight: 700;" href="{{ route('register') }}">Daftar</a>
                     </li>
                 @endauth
             </ul>

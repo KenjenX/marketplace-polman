@@ -8,13 +8,14 @@
             <div class="col-lg-8">
                 <div class="d-flex flex-column justify-content-center h-100 text-white p-4 p-md-5" style="min-height: 600px;">
                     <div class="mb-3">
-                        <span class="text-uppercase fw-bold px-3 py-2" style="background: #fff; color: #013780; font-size: 11px; letter-spacing: 2px;">
+                        {{-- Background diubah jadi Biru Polman, teks jadi Putih agar terbaca --}}
+                        <span class="text-uppercase fw-bold px-3 py-2" style="background: #013780; color: #fff; font-size: 11px; letter-spacing: 2px;">
                             Marketplace Polman
                         </span>
                     </div>
 
                     <h1 class="display-3 fw-bold mb-4" style="line-height: 1.1; letter-spacing: -2px;">
-                        Solusi Manufaktur, <br> Pengecoran & Elektronik
+                        Solusi Manufaktur, <br> Pengecoran Logam & Elektronik
                     </h1>
 
                     <p class="lead mb-5 opacity-75" style="max-width: 650px; font-size: 1.2rem; line-height: 1.6;">
@@ -22,7 +23,8 @@
                     </p>
 
                     <div class="d-flex flex-wrap gap-3">
-                        <a href="{{ route('products.index') }}" class="btn btn-light rounded-0 px-5 py-3 fw-bold text-uppercase" style="font-size: 13px; letter-spacing: 1px;">
+                        {{-- Tombol utama diubah jadi Biru Polman --}}
+                        <a href="{{ route('products.index') }}" class="btn rounded-0 px-5 py-3 fw-bold text-uppercase" style="background-color: #013780; color: white; border: 1px solid #013780; font-size: 13px; letter-spacing: 1px;">
                             Lihat Produk
                         </a>
                         <a href="#kategori" class="btn btn-outline-light rounded-0 px-5 py-3 fw-bold text-uppercase" style="font-size: 13px; letter-spacing: 1px;">
@@ -34,7 +36,6 @@
         </div>
     </div>
 </div>
-
 {{-- TAMBAHAN: Stats Bar (Kredibilitas) --}}
 <div class="bg-white border-bottom py-4">
     <div class="container">
