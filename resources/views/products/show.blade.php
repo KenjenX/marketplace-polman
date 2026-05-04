@@ -18,6 +18,87 @@
         margin: 0;
     }
     .qty-input:focus { box-shadow: none; border-color: #013780; }
+
+    /* --- REVISI ZOOM & KACA PEMBESAR (LOUPE.PNG) --- */
+    .img-zoom-container {
+        position: relative;
+        width: 100%;
+        height: 550px;
+        background: #fdfdfd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        cursor: crosshair;
+        border: 1px solid #f0f0f0;
+        border-radius: 4px;
+    }
+
+    .main-product-img {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+        transition: transform 0.1s ease-out;
+        transform-origin: center center;
+    }
+
+    /* Ikon Kaca Pembesar (loupe.png) */
+    .fullscreen-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: white;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        cursor: pointer;
+        z-index: 10;
+        transition: 0.3s;
+        border: 1px solid #eee;
+    }
+
+    .loupe-icon {
+        height: 22px;
+        width: auto;
+        transition: 0.3s;
+    }
+
+    .fullscreen-btn:hover {
+        transform: scale(1.1);
+        background: #013780;
+    }
+
+    .fullscreen-btn:hover .loupe-icon {
+        filter: brightness(0) invert(1); /* Jadi putih saat hover background biru */
+    }
+
+    /* Modal Fullscreen (Lightbox) */
+    #image-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.95);
+        align-items: center;
+        justify-content: center;
+    }
+
+    #modal-img {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+        animation: zoomIn 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    @keyframes zoomIn {
+        from { transform: scale(0.7); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
 </style>
 
 <div class="container-fluid py-4">
@@ -32,11 +113,22 @@
     <div class="row g-5">
         {{-- 2. SISI KIRI: FOTO PRODUK --}}
         <div class="col-lg-7">
-            <div style="width: 100%; height: 550px; background: transparent; display: flex; align-items: center; justify-content: flex-start; overflow: hidden;">
+            <div class="img-zoom-container shadow-sm" id="zoom-area">
+                {{-- Tombol Kaca Pembesar Menggunakan loupe.png --}}
+                <div class="fullscreen-btn" id="open-lightbox" title="Perbesar Gambar">
+                    <img src="{{ asset('assets/img/loupe.png') }}" alt="Zoom" class="loupe-icon">
+                </div>
+
                 @if($product->image)
-                    <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" style="max-width: 100%; max-height: 100%; object-fit: contain; object-position: left;">
+                    <img src="{{ asset('storage/' . $product->image) }}" 
+                         id="product-image" 
+                         alt="{{ $product->name }}" 
+                         class="main-product-img">
                 @else
-                    <img src="{{ asset('assets/img/foto_tidak_tersedia.png') }}" alt="Foto tidak tersedia" style="max-width: 100%; max-height: 100%; object-fit: contain; object-position: left; opacity: 0.3;">
+                    <img src="{{ asset('assets/img/foto_tidak_tersedia.png') }}" 
+                         alt="Foto tidak tersedia" 
+                         id="product-image"
+                         class="main-product-img" style="opacity: 0.2;">
                 @endif
             </div>
         </div>
@@ -96,7 +188,6 @@
                         @csrf
                         <input type="hidden" name="variant_id" id="selected-variant-id">
                         
-                        {{-- Fitur Plus Minus Quantity --}}
                         <div id="quantity-area" class="mb-4 align-items-center gap-3" style="display: none;">
                             <label class="small fw-bold text-uppercase" style="letter-spacing: 1px; font-size: 10px;">Jumlah</label>
                             <div class="input-group input-group-sm" style="width: 120px;">
@@ -126,12 +217,58 @@
     </div>
 </div>
 
+{{-- MODAL LIGHTBOX --}}
+<div id="image-modal">
+    <span style="position: absolute; top: 20px; right: 30px; color: white; font-size: 45px; cursor: pointer; z-index: 10000; font-family: Arial;" id="close-modal">&times;</span>
+    <img id="modal-img">
+</div>
+
 <script>
+    // --- 1. LOGIKA ZOOM & FULLSCREEN ---
+    const zoomArea = document.getElementById('zoom-area');
+    const productImage = document.getElementById('product-image');
+    const openLightbox = document.getElementById('open-lightbox');
+    const imageModal = document.getElementById('image-modal');
+    const modalImg = document.getElementById('modal-img');
+    const closeModal = document.getElementById('close-modal');
+
+    if(productImage && zoomArea) {
+        zoomArea.addEventListener('mousemove', function(e) {
+            const { left, top, width, height } = zoomArea.getBoundingClientRect();
+            const x = ((e.clientX - left) / width) * 100;
+            const y = ((e.clientY - top) / height) * 100;
+
+            productImage.style.transformOrigin = `${x}% ${y}%`;
+            productImage.style.transform = "scale(2.2)"; // Sedikit lebih besar biar detail kerasa
+        });
+
+        zoomArea.addEventListener('mouseleave', function() {
+            productImage.style.transform = "scale(1)";
+            productImage.style.transformOrigin = "center center";
+        });
+    }
+
+    if(openLightbox) {
+        openLightbox.addEventListener('click', function(e) {
+            e.preventDefault();
+            imageModal.style.display = "flex";
+            modalImg.src = productImage.src;
+        });
+    }
+
+    if(closeModal) {
+        closeModal.addEventListener('click', () => imageModal.style.display = "none");
+    }
+
+    imageModal.addEventListener('click', (e) => {
+        if(e.target === imageModal) imageModal.style.display = "none";
+    });
+
+    // --- 2. LOGIKA PILIH VARIAN ---
+    const qtyInput = document.getElementById('prod-quantity');
     const btnMinus = document.getElementById('btn-minus');
     const btnPlus = document.getElementById('btn-plus');
-    const qtyInput = document.getElementById('prod-quantity');
 
-    // --- 1. LOGIKA PILIH VARIAN ---
     document.querySelectorAll('.btn-variant').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.btn-variant').forEach(b => {
@@ -168,13 +305,10 @@
 
             const cartBtn = document.getElementById('btn-add-cart');
             if(cartBtn) cartBtn.disabled = (stock <= 0);
-
-            const form = document.getElementById('add-to-cart-form');
-            if(form) form.action = "{{ url('cart/add') }}/" + id;
         });
     });
 
-    // --- 2. LOGIKA PLUS MINUS ---
+    // --- 3. LOGIKA PLUS MINUS ---
     if(btnPlus) {
         btnPlus.addEventListener('click', function() {
             let max = parseInt(qtyInput.max);
@@ -189,24 +323,5 @@
             if(current > 1) qtyInput.value = current - 1;
         });
     }
-
-    // --- 3. POPUP BERHASIL ---
-    @if(session('success'))
-        Swal.fire({
-            title: 'Berhasil!',
-            text: "{{ session('success') }}",
-            icon: 'success',
-            showCancelButton: true,
-            confirmButtonColor: '#013780',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Lihat Keranjang',
-            cancelButtonText: 'Lanjut Belanja',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = "{{ route('cart.index') }}";
-            }
-        });
-    @endif
 </script>
 @endsection

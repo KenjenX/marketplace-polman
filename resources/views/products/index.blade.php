@@ -10,7 +10,6 @@
         border-color: #013780;
     }
 
-    /* CSS Select Modern */
     .modern-select {
         background-color: #f8f9fa;
         border: none;
@@ -69,6 +68,11 @@
         pointer-events: auto;
         box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
+    .price-input-container input::-webkit-outer-spin-button,
+    .price-input-container input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
 </style>
 
 @section('content')
@@ -92,7 +96,7 @@
                         </button>
                     </div>
 
-                    {{-- Urutkan Berdasarkan (Desain Dipercantik) --}}
+                    {{-- Urutkan --}}
                     <h6 class="fw-bold mb-2 text-uppercase text-muted" style="font-size: 12px; letter-spacing: 1px;">Urutkan</h6>
                     <div class="mb-4">
                         <select name="sort" class="form-select modern-select py-2 px-3 text-dark fw-medium shadow-none" style="font-size: 13px; cursor: pointer;" onchange="submitFilter()">
@@ -104,24 +108,39 @@
                         </select>
                     </div>
 
-                    {{-- Filter Harga --}}
+                    {{-- Filter Harga Logaritmik --}}
                     <h6 class="fw-bold mb-2 text-uppercase text-muted" style="font-size: 12px; letter-spacing: 1px;">Harga</h6>
                     <div class="mb-4">
                         <div class="range-slider-container">
                             <div class="slider-track"></div>
-                            <input type="range" name="min_price" id="slider-1" 
-                                   min="{{ $globalMinPrice }}" max="{{ $globalMaxPrice }}" 
-                                   value="{{ request('min_price', $globalMinPrice) }}" 
-                                   oninput="slideOne()" onchange="submitFilter()">
-                                   
-                            <input type="range" name="max_price" id="slider-2" 
-                                   min="{{ $globalMinPrice }}" max="{{ $globalMaxPrice }}" 
-                                   value="{{ request('max_price', $globalMaxPrice) }}" 
-                                   oninput="slideTwo()" onchange="submitFilter()">
+                            {{-- Range 0-100 sebagai persentase logaritmik --}}
+                            <input type="range" id="slider-1" min="0" max="100" step="0.1" value="0" oninput="slideOne()" onchange="submitFilter()">
+                            <input type="range" id="slider-2" min="0" max="100" step="0.1" value="100" oninput="slideTwo()" onchange="submitFilter()">
                         </div>
-                        <div class="d-flex justify-content-between text-dark fw-bold" style="font-size: 13px;">
-                            <span id="display-min">Rp0</span>
-                            <span id="display-max">Rp0</span>
+                        
+                        {{-- Hidden inputs untuk mengirim data ke Controller --}}
+                        <input type="hidden" name="min_price" id="hidden-min" value="{{ request('min_price', $globalMinPrice) }}">
+                        <input type="hidden" name="max_price" id="hidden-max" value="{{ request('max_price', $globalMaxPrice) }}">
+
+                        <div class="row g-2 mt-1 price-input-container">
+                            <div class="col-6">
+                                <div class="input-group input-group-sm border rounded">
+                                    <span class="input-group-text bg-transparent border-0 text-muted" style="font-size: 10px;">Min</span>
+                                    <input type="number" id="input-min" class="form-control border-0 ps-0 shadow-none" 
+                                           style="font-size: 12px; font-weight: 600;" 
+                                           value="{{ request('min_price', $globalMinPrice) }}"
+                                           onchange="syncSliderWithInput()">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="input-group input-group-sm border rounded">
+                                    <span class="input-group-text bg-transparent border-0 text-muted" style="font-size: 10px;">Max</span>
+                                    <input type="number" id="input-max" class="form-control border-0 ps-0 shadow-none" 
+                                           style="font-size: 12px; font-weight: 600;" 
+                                           value="{{ request('max_price', $globalMaxPrice) }}"
+                                           onchange="syncSliderWithInput()">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -141,7 +160,6 @@
                         @endforeach
                     </div>
 
-                    {{-- Tombol Reset --}}
                     @if(request()->hasAny(['search', 'categories', 'min_price', 'max_price', 'sort']))
                         <div class="d-grid mt-4">
                             <a href="{{ route('products.index') }}" class="btn btn-light border shadow-sm fw-bold text-danger" style="border-radius: 12px;">
@@ -150,7 +168,6 @@
                         </div>
                     @endif
                 </form>
-
             </div>
         </div>
 
@@ -158,7 +175,6 @@
              2. MAIN CONTENT KANAN (PRODUK)
         =========================================== --}}
         <div class="col-lg-9">
-            
             <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
                 <h5 class="fw-bold mb-0 text-dark">Katalog Produk</h5>
                 <span class="text-muted small">
@@ -166,7 +182,6 @@
                 </span>
             </div>
 
-            {{-- GRID PRODUK --}}
             <div class="row row-cols-2 row-cols-md-3 g-4">
                 @forelse($products as $product)
                     <div class="col">
@@ -188,13 +203,13 @@
                                     </h6>
                                     <div class="product-price mt-2" style="font-size: 14px; color: #013780; font-weight: 700;">
                                         @php 
-                                            $minPrice = $product->variants->min('price');
-                                            $maxPrice = $product->variants->max('price');
+                                            $minP = $product->variants->min('price');
+                                            $maxP = $product->variants->max('price');
                                         @endphp
-                                        @if($product->variants->count() > 1 && $minPrice != $maxPrice)
-                                            Rp{{ number_format($minPrice, 0, ',', '.') }} - Rp{{ number_format($maxPrice, 0, ',', '.') }}
+                                        @if($product->variants->count() > 1 && $minP != $maxP)
+                                            Rp{{ number_format($minP, 0, ',', '.') }} - Rp{{ number_format($maxP, 0, ',', '.') }}
                                         @elseif($product->variants->count() > 0)
-                                            Rp{{ number_format($minPrice, 0, ',', '.') }}
+                                            Rp{{ number_format($minP, 0, ',', '.') }}
                                         @else
                                             <span class="text-muted fw-normal fst-italic" style="font-size: 12px;">Harga belum tersedia</span>
                                         @endif
@@ -209,81 +224,91 @@
                             <img src="{{ asset('assets/img/foto_tidak_tersedia.png') }}" style="width: 100px; opacity: 0.15;">
                         </div>
                         <h6 class="fw-bold text-dark mb-1">Produk tidak ditemukan</h6>
-                        <p class="text-muted small">Coba sesuaikan urutan, filter kategori, atau rentang harga.</p>
                     </div>
                 @endforelse
             </div>
 
-            {{-- 4. PAGINATION --}}
             <div class="d-flex justify-content-center mt-5 mb-5">
                 <div class="custom-pagination">
-                    @if ($products->total() <= $products->perPage())
-                        <ul class="pagination">
-                            <li class="page-item active">
-                                <span class="page-link">1</span>
-                            </li>
-                        </ul>
-                    @else
+                    @if ($products->total() > $products->perPage())
                         {{ $products->appends(request()->query())->links() }}
+                    @else
+                        <ul class="pagination"><li class="page-item active"><span class="page-link">1</span></li></ul>
                     @endif
                 </div>
             </div>
-
         </div>
     </div>
-    
-    <style>
-        .custom-pagination nav div:first-child { display: none; }
-        .custom-pagination .pagination { display: flex; gap: 12px; list-style: none; padding: 0; }
-        .custom-pagination .page-item .page-link { border: none; background: transparent; color: #888; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 600; border-radius: 50%; }
-        .custom-pagination .page-item.active .page-link { background-color: #013780; color: #fff !important; box-shadow: 0 4px 10px rgba(1, 55, 128, 0.2); }
-        .custom-pagination .page-link:hover:not(.active) { background-color: #f0f7ff; color: #013780; }
-    </style>
 </div>
 
 <script>
-    let sliderOne = document.getElementById("slider-1");
-    let sliderTwo = document.getElementById("slider-2");
-    let displayValOne = document.getElementById("display-min");
-    let displayValTwo = document.getElementById("display-max");
-    let minGap = 0;
-    let sliderTrack = document.querySelector(".slider-track");
-    
-    let sliderMinValue = sliderOne ? parseInt(sliderOne.min) : 0;
-    let sliderMaxValue = sliderOne ? parseInt(sliderOne.max) : 100000;
+    // Config Logaritmik
+    const minP = {{ $globalMinPrice }};
+    const maxP = {{ $globalMaxPrice }};
+    // Gunakan log10 agar sebaran harga murah lebih luas di slider
+    const minLog = Math.log10(minP || 1); 
+    const maxLog = Math.log10(maxP);
 
-    const formatRupiah = (number) => {
-        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+    const slider1 = document.getElementById("slider-1");
+    const slider2 = document.getElementById("slider-2");
+    const inputMin = document.getElementById("input-min");
+    const inputMax = document.getElementById("input-max");
+    const hiddenMin = document.getElementById("hidden-min");
+    const hiddenMax = document.getElementById("hidden-max");
+    const sliderTrack = document.querySelector(".slider-track");
+
+    // Konversi Persentase Slider ke Nilai Harga Rupiah (Log)
+    function positionToValue(pos) {
+        return Math.round(Math.pow(10, minLog + (pos / 100) * (maxLog - minLog)));
+    }
+
+    // Konversi Nilai Harga Rupiah ke Persentase Slider (Log)
+    function valueToPosition(val) {
+        return ((Math.log10(val || 1) - minLog) / (maxLog - minLog)) * 100;
     }
 
     function slideOne() {
-        if (!sliderOne) return;
-        if(parseInt(sliderTwo.value) - parseInt(sliderOne.value) <= minGap){
-            sliderOne.value = parseInt(sliderTwo.value) - minGap;
+        if(parseFloat(slider2.value) - parseFloat(slider1.value) <= 1){
+            slider1.value = parseFloat(slider2.value) - 1;
         }
-        displayValOne.textContent = formatRupiah(sliderOne.value);
+        const val = positionToValue(slider1.value);
+        inputMin.value = val;
+        hiddenMin.value = val;
         fillColor();
     }
 
     function slideTwo() {
-        if (!sliderTwo) return;
-        if(parseInt(sliderTwo.value) - parseInt(sliderOne.value) <= minGap){
-            sliderTwo.value = parseInt(sliderOne.value) + minGap;
+        if(parseFloat(slider2.value) - parseFloat(slider1.value) <= 1){
+            slider2.value = parseFloat(slider1.value) + 1;
         }
-        displayValTwo.textContent = formatRupiah(sliderTwo.value);
+        const val = positionToValue(slider2.value);
+        inputMax.value = val;
+        hiddenMax.value = val;
         fillColor();
     }
 
-    function fillColor() {
-        if (!sliderTrack) return;
-        let percent1 = ((sliderOne.value - sliderMinValue) / (sliderMaxValue - sliderMinValue)) * 100;
-        let percent2 = ((sliderTwo.value - sliderMinValue) / (sliderMaxValue - sliderMinValue)) * 100;
+    function syncSliderWithInput() {
+        let vMin = Math.max(minP, Math.min(maxP, parseInt(inputMin.value)));
+        let vMax = Math.max(minP, Math.min(maxP, parseInt(inputMax.value)));
         
-        if (sliderMaxValue === sliderMinValue) {
-            percent1 = 0; percent2 = 100;
-        }
+        if(vMin > vMax) vMin = vMax;
+        
+        inputMin.value = vMin;
+        inputMax.value = vMax;
+        hiddenMin.value = vMin;
+        hiddenMax.value = vMax;
 
-        sliderTrack.style.background = `linear-gradient(to right, #e9ecef ${percent1}%, #013780 ${percent1}%, #013780 ${percent2}%, #e9ecef ${percent2}%)`;
+        slider1.value = valueToPosition(vMin);
+        slider2.value = valueToPosition(vMax);
+        
+        fillColor();
+        submitFilter();
+    }
+
+    function fillColor() {
+        const p1 = slider1.value;
+        const p2 = slider2.value;
+        sliderTrack.style.background = `linear-gradient(to right, #e9ecef ${p1}%, #013780 ${p1}%, #013780 ${p2}%, #e9ecef ${p2}%)`;
     }
 
     function submitFilter() {
@@ -291,8 +316,10 @@
     }
 
     window.onload = function() {
-        slideOne();
-        slideTwo();
+        // Inisialisasi posisi slider berdasarkan value request atau global
+        slider1.value = valueToPosition(parseInt(hiddenMin.value));
+        slider2.value = valueToPosition(parseInt(hiddenMax.value));
+        fillColor();
     }
 </script>
 @endsection
