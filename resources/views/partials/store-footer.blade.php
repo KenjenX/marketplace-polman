@@ -5,18 +5,12 @@
             {{-- 1. Brand & Slogan --}}
             <div class="col-lg-4 col-md-6">
                 <div style="display: flex; align-items: center; margin-bottom: 20px;">
-                    {{-- Logo difilter putih agar kontras dengan background biru --}}
                     <img src="{{ asset('assets/img/logo-polman.png') }}" alt="Logo" style="height: 35px; width: auto; margin-right: 12px; filter: brightness(0) invert(1);">
                     <span style="font-weight: 800; color: #ffffff; letter-spacing: 1px; font-size: 1.1rem; text-transform: uppercase;">MARKETPLACE POLMAN</span>
                 </div>
                 <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; line-height: 1.8; margin: 0; text-align: justify; max-width: 350px;">
                     Solusi manufaktur, pengecoran, dan elektronik industri. Platform resmi produk inovasi mahasiswa dan layanan teknis Politeknik Manufaktur Bandung.
                 </p>
-                <div style="display: flex; gap: 15px; margin-top: 20px;">
-                    <a href="#" style="color: rgba(255, 255, 255, 0.8); font-size: 18px; transition: 0.3s;" onmouseover="this.style.color='#FFD700'" onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'"><i class="bi bi-instagram"></i></a>
-                    <a href="#" style="color: rgba(255, 255, 255, 0.8); font-size: 18px; transition: 0.3s;" onmouseover="this.style.color='#FFD700'" onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'"><i class="bi bi-facebook"></i></a>
-                    <a href="#" style="color: rgba(255, 255, 255, 0.8); font-size: 18px; transition: 0.3s;" onmouseover="this.style.color='#FFD700'" onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'"><i class="bi bi-linkedin"></i></a>
-                </div>
             </div>
 
             {{-- 2. Katalog Cepat --}}
@@ -30,25 +24,35 @@
                 </div>
             </div>
 
-            {{-- 3. Hubungi Kami --}}
-            <div class="col-lg-4 col-md-12">
-                <h6 style="font-weight: 700; font-size: 13px; color: #FFD700; text-transform: uppercase; margin-bottom: 25px; margin-top: 0;">HUBUNGI KAMI</h6>
+            {{-- 3. Informasi --}}
+            <div class="col-lg-2 col-md-6">
+                <h6 style="font-weight: 700; font-size: 13px; color: #FFD700; text-transform: uppercase; margin-bottom: 25px; margin-top: 0;">INFORMASI</h6>
                 <div style="display: block; padding: 0; margin: 0;">
-                    {{-- Alamat --}}
-                    <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
-                        <div style="width: 25px; color: #FFD700;"><i class="bi bi-geo-alt"></i></div>
-                        <div style="color: rgba(255, 255, 255, 0.8); font-size: 14px; line-height: 1.5; flex: 1;">Jl. Kanayakan No.21, Dago, Kecamatan Coblong, Kota Bandung, Jawa Barat 40135</div>
-                    </div>
-                    {{-- Email --}}
-                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                        <div style="width: 25px; color: #FFD700;"><i class="bi bi-envelope"></i></div>
-                        <div style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">marketplace@polman-bandung.ac.id</div>
-                    </div>
-                    {{-- WA --}}
-                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                        <div style="width: 25px; color: #FFD700;"><i class="bi bi-whatsapp"></i></div>
-                        <div style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">+62 812-xxxx-xxxx</div>
-                    </div>
+                    <a href="{{ url('/about') }}" style="display: block; color: rgba(255, 255, 255, 0.8); font-size: 14px; text-decoration: none; margin-bottom: 10px; transition: 0.3s;" onmouseover="this.style.color='#FFD700'" onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'">About Us</a>
+                    <a href="{{ url('/contact') }}" style="display: block; color: rgba(255, 255, 255, 0.8); font-size: 14px; text-decoration: none; margin-bottom: 10px; transition: 0.3s;" onmouseover="this.style.color='#FFD700'" onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'">Contact Us</a>
+                </div>
+            </div>
+
+            {{-- 4. Media Sosial Resmi (Custom Ikon PNG) --}}
+            <div class="col-lg-3 col-md-6">
+                <h6 style="font-weight: 700; font-size: 13px; color: #FFD700; text-transform: uppercase; margin-bottom: 25px; margin-top: 0;">MEDIA SOSIAL</h6>
+                <div style="display: block; padding: 0; margin: 0;">
+                    {{-- Instagram --}}
+                    <a href="https://www.instagram.com/polmanbandung" target="_blank" style="display: flex; align-items: center; color: rgba(255, 255, 255, 0.8); font-size: 14px; text-decoration: none; margin-bottom: 15px; transition: 0.3s;" onmouseover="this.style.color='#FFD700'" onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'">
+                        <img src="{{ asset('assets/img/social.png') }}" alt="IG" style="height: 18px; width: auto; margin-right: 12px;"> Instagram
+                    </a>
+                    {{-- YouTube --}}
+                    <a href="https://www.youtube.com/@POLMAN.BANDUNG" target="_blank" style="display: flex; align-items: center; color: rgba(255, 255, 255, 0.8); font-size: 14px; text-decoration: none; margin-bottom: 15px; transition: 0.3s;" onmouseover="this.style.color='#FFD700'" onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'">
+                        <img src="{{ asset('assets/img/youtube.png') }}" alt="YT" style="height: 18px; width: auto; margin-right: 12px;"> YouTube
+                    </a>
+                    {{-- LinkedIn --}}
+                    <a href="https://www.linkedin.com/school/politeknik-manufaktur-bandung" target="_blank" style="display: flex; align-items: center; color: rgba(255, 255, 255, 0.8); font-size: 14px; text-decoration: none; margin-bottom: 15px; transition: 0.3s;" onmouseover="this.style.color='#FFD700'" onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'">
+                        <img src="{{ asset('assets/img/linkedin.png') }}" alt="LI" style="height: 18px; width: auto; margin-right: 12px;"> LinkedIn
+                    </a>
+                    {{-- Twitter / X --}}
+                    <a href="https://twitter.com/polmanbandung" target="_blank" style="display: flex; align-items: center; color: rgba(255, 255, 255, 0.8); font-size: 14px; text-decoration: none; margin-bottom: 15px; transition: 0.3s;" onmouseover="this.style.color='#FFD700'" onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'">
+                        <img src="{{ asset('assets/img/twitter.png') }}" alt="X" style="height: 18px; width: auto; margin-right: 12px;"> Twitter / X
+                    </a>
                 </div>
             </div>
 
