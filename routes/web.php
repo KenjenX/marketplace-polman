@@ -43,8 +43,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/cart/{item}', [CartController::class, 'update'])->name('cart.update')->middleware(['auth']);
     Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('cart.destroy')->middleware(['auth']);
 
-    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index')->middleware(['auth']);
-    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('checkout', [CheckoutController::class, 'index'])->name('checkout.index')->middleware(['auth']);
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store')->middleware(['auth']);
 
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
@@ -104,13 +104,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index']);
 });
 
-// Rute untuk halaman edit profile yang hanya bisa diakses oleh pengguna yang sudah terverifikasi emailnya
-Route::get('/profile/edit', function () {
-    return view('profile.edit', [
-        'user' => Auth::user()
-    ]);
-})->middleware(['auth'])->name('profile.edit');
-
 // Rute untuk halaman dashboard yang hanya bisa diakses oleh pengguna yang sudah terverifikasi emailnya
 Route::get('/email/verify', function () {
     return view('auth.verify-email');
@@ -127,8 +120,5 @@ Route::post('/email/verification-notification', function (Request $request) {
 
     return back()->with('resent', 'Link verifikasi dikirim ulang!');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
-
-Route::get('/checkout', [CheckoutController::class, 'index']);
-Route::post('/checkout/process', [CheckoutController::class, 'store']);
 
 require __DIR__.'/auth.php';
