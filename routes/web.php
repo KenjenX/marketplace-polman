@@ -128,7 +128,7 @@ Route::post('/email/verification-notification', function (Request $request) {
     return back()->with('resent', 'Link verifikasi dikirim ulang!');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
-Route::get('/checkout', [CheckoutController::class, 'index']);
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/checkout/process', [CheckoutController::class, 'store']);
 
 require __DIR__.'/auth.php';
