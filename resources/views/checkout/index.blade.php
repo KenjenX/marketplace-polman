@@ -14,32 +14,50 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Nama Penerima</label>
-                            <input type="text" name="recipient_name" value="{{ old('recipient_name', auth()->user()->default_recipient_name ?: auth()->user()->display_name) }}" class="form-control bg-light border-0 py-2 shadow-none">
+                            <input type="text" name="recipient_name"
+                                   value="{{ old('recipient_name', auth()->user()->default_recipient_name ?: auth()->user()->display_name) }}"
+                                   class="form-control bg-light border-0 py-2 shadow-none">
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">No. HP</label>
-                            <input type="text" name="phone" value="{{ old('phone', auth()->user()->phone) }}" class="form-control bg-light border-0 py-2 shadow-none">
+                            <input type="text" name="phone"
+                                   value="{{ old('phone', auth()->user()->phone) }}"
+                                   class="form-control bg-light border-0 py-2 shadow-none">
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Provinsi</label>
-                            <input type="text" name="province" value="{{ old('province', auth()->user()->default_province) }}" class="form-control bg-light border-0 py-2 shadow-none">
+                            <input type="text" name="province"
+                                   value="{{ old('province', auth()->user()->default_province) }}"
+                                   class="form-control bg-light border-0 py-2 shadow-none">
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Kota / Kabupaten</label>
-                            <input type="text" name="city" value="{{ old('city', auth()->user()->default_city) }}" class="form-control bg-light border-0 py-2 shadow-none">
+                            <input type="text" name="city"
+                                   value="{{ old('city', auth()->user()->default_city) }}"
+                                   class="form-control bg-light border-0 py-2 shadow-none">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Kecamatan</label>
+                            <input type="text" name="district"
+                                value="{{ old('district', auth()->user()->default_district) }}"
+                                class="form-control bg-light border-0 py-2 shadow-none">
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Kode Pos</label>
-                            <input type="text" name="postal_code" value="{{ old('postal_code', auth()->user()->default_postal_code) }}" class="form-control bg-light border-0 py-2 shadow-none">
+                            <input type="text" name="postal_code"
+                                   value="{{ old('postal_code', auth()->user()->default_postal_code) }}"
+                                   class="form-control bg-light border-0 py-2 shadow-none">
                         </div>
 
                         <div class="col-12">
                             <label class="form-label fw-semibold">Alamat Lengkap</label>
-                            <textarea name="full_address" class="form-control bg-light border-0 shadow-none" rows="3">{{ old('full_address', auth()->user()->default_full_address) }}</textarea>
+                            <textarea name="full_address"
+                                      class="form-control bg-light border-0 shadow-none" rows="3">{{ old('full_address', auth()->user()->default_full_address) }}</textarea>
                         </div>
                     </div>
 
@@ -50,6 +68,9 @@
                         <label class="form-label fw-semibold">Pilih Kurir</label>
                         <select name="shipping_method" class="form-select bg-light border-0 py-2 shadow-none" id="shippingMethod">
                             <option value="">-- Pilih Jasa Pengiriman --</option>
+                            <option value="jne_reg">JNE REG - Rp 10.000</option>
+                            <option value="jne_yes">JNE YES - Rp 20.000</option>
+                            <option value="jnt">J&T - Rp 12.000</option>
                         </select>
                         <small class="text-muted mt-2 d-block">*Silakan isi alamat lengkap untuk melihat opsi pengiriman.</small>
                     </div>

@@ -90,41 +90,61 @@
                             </div>
                         </div>
 
-                        {{-- Tab 2: Alamat Default --}}
+                       {{-- Tab 2: Alamat Default --}}
                         <div class="tab-pane fade" id="alamat-default">
                             <div class="card border-0 shadow-sm rounded-0 p-4 p-md-5">
                                 <h4 class="fw-bold mb-4">Alamat Default Checkout</h4>
-                                <form method="POST" action="{{ route('profile.update') }}">
+
+                                <form method="POST" action="{{ route('profile.address.update') }}">
                                     @csrf
-                                    @method('PATCH')
+
                                     <div class="row g-3">
                                         <div class="col-12">
                                             <label class="form-label small fw-bold text-muted">Nama Penerima Default</label>
-                                            <input type="text" name="default_recipient_name" value="{{ old('default_recipient_name', $user->default_recipient_name) }}" class="form-control bg-light border-0 py-2">
+                                            <input type="text" name="default_recipient_name"
+                                                value="{{ old('default_recipient_name', $user->default_recipient_name) }}"
+                                                class="form-control bg-light border-0 py-2">
                                         </div>
+
                                         <div class="col-md-6">
                                             <label class="form-label small fw-bold text-muted">Provinsi</label>
-                                            <input type="text" name="default_province" value="{{ old('default_province', $user->default_province) }}" class="form-control bg-light border-0 py-2">
+                                            <input type="text" name="default_province"
+                                                value="{{ old('default_province', $user->default_province) }}"
+                                                class="form-control bg-light border-0 py-2">
                                         </div>
+
                                         <div class="col-md-6">
                                             <label class="form-label small fw-bold text-muted">Kota / Kabupaten</label>
-                                            <input type="text" name="default_city" value="{{ old('default_city', $user->default_city) }}" class="form-control bg-light border-0 py-2">
+                                            <input type="text" name="default_city"
+                                                value="{{ old('default_city', $user->default_city) }}"
+                                                class="form-control bg-light border-0 py-2">
                                         </div>
+
                                         <div class="col-md-6">
                                             <label class="form-label small fw-bold text-muted">Kecamatan</label>
-                                            <input type="text" name="default_district" value="{{ old('default_district', $user->default_district) }}" class="form-control bg-light border-0 py-2">
+                                            <input type="text" name="default_district"
+                                                value="{{ old('default_district', $user->default_district) }}"
+                                                class="form-control bg-light border-0 py-2">
                                         </div>
+
                                         <div class="col-md-6">
                                             <label class="form-label small fw-bold text-muted">Kode Pos</label>
-                                            <input type="text" name="default_postal_code" value="{{ old('default_postal_code', $user->default_postal_code) }}" class="form-control bg-light border-0 py-2">
+                                            <input type="text" name="default_postal_code"
+                                                value="{{ old('default_postal_code', $user->default_postal_code) }}"
+                                                class="form-control bg-light border-0 py-2">
                                         </div>
+
                                         <div class="col-12">
                                             <label class="form-label small fw-bold text-muted">Alamat Lengkap</label>
-                                            <textarea name="default_full_address" rows="3" class="form-control bg-light border-0 py-2">{{ old('default_full_address', $user->default_full_address) }}</textarea>
+                                            <textarea name="default_full_address" rows="3"
+                                                class="form-control bg-light border-0 py-2">{{ old('default_full_address', $user->default_full_address) }}</textarea>
                                         </div>
                                     </div>
+
                                     <div class="mt-5 text-end">
-                                        <button type="submit" class="btn btn-primary px-5 fw-bold rounded-0 shadow-sm">Update Alamat</button>
+                                        <button type="submit" class="btn btn-primary px-5 fw-bold rounded-0 shadow-sm">
+                                            Update Alamat
+                                        </button>
                                     </div>
                                 </form>
                             </div>

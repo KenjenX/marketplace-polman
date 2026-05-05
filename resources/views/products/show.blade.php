@@ -184,7 +184,7 @@
                 @if($product->image)
                     <img src="{{ asset('storage/' . $product->image) }}" id="product-image" alt="{{ $product->name }}" class="main-product-img">
                 @else
-                    <img src="{{ asset('assets/img/foto_tidak_tersedia.png') }}" id="product-image" class="main-product-img" style="opacity: 0.1;">
+                    <img src="{{ asset('assets/img/foto_tidak_tersedia.png') }}" id="product-image" class="main-product-img" style="opacity: 0.1;" alt="Foto Tidak Tersedia">
                 @endif
             </div>
         </div>
@@ -233,7 +233,7 @@
                 </div>
 
                 @auth
-                    <form action="{{ url('cart/add') }}" method="POST" id="add-to-cart-form">
+                    <form action="" method="POST" id="add-to-cart-form">
                         @csrf
                         <input type="hidden" name="variant_id" id="selected-variant-id">
                         <div id="quantity-area" class="mb-4 align-items-center gap-3" style="display: none;">
@@ -261,7 +261,7 @@
 {{-- MODAL LIGHTBOX --}}
 <div id="image-modal">
     <span style="position: absolute; top: 20px; right: 30px; color: white; font-size: 45px; cursor: pointer; z-index: 10000;" id="close-modal">&times;</span>
-    <img id="modal-img">
+    <img id="modal-img" alt="">
 </div>
 
 <script>
@@ -321,5 +321,19 @@
         const q = document.getElementById('prod-quantity');
         if(parseInt(q.value) > 1) q.value = parseInt(q.value) - 1;
     };
+    const form = document.getElementById('add-to-cart-form');
+
+    document.querySelectorAll('.btn-variant').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const variantId = this.getAttribute('data-id');
+
+            // SET ACTION ROUTE
+            form.action = `/cart/add/${variantId}`;
+
+            document.getElementById('selected-variant-id').value = variantId;
+
+            // sisanya biarkan
+        });
+    });
 </script>
 @endsection

@@ -53,10 +53,13 @@ class RegisteredUserController extends Controller
             'phone' => $request->phone,
             'company_name' => $request->account_type === 'company' ? $request->company_name : null,
             'contact_person' => $request->account_type === 'company' ? $request->contact_person : null,
+            
         ]);
+        // Kirim email verifikasi setelah pembuatan akun
+        $user->sendEmailVerificationNotification();
 
         event(new Registered($user));
 
-        return redirect()->route('login')->with('success', 'Registrasi berhasil. Silakan login dengan akun yang baru dibuat.');
+        return redirect()->route('verification.notice')->with('success', 'Registrasi berhasil! Silakan verifikasi email Anda.');
     }
 }

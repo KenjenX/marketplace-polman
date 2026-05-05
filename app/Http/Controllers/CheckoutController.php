@@ -36,6 +36,7 @@ class CheckoutController extends Controller
             'postal_code' => 'nullable|max:20',
             'full_address' => 'required',
             'payment_method_id' => 'required|exists:payment_methods,id',
+            'shipping_method' => 'required|string', // 👈 TAMBAHAN ONGKIR
             'notes' => 'nullable',
         ]);
 
@@ -50,10 +51,17 @@ class CheckoutController extends Controller
         DB::beginTransaction();
 
         try {
+
             $lockedVariants = [];
             $grandTotal = 0;
 
+            /*
+            |------------------------------------------------
+            | 1. LOCK & VALIDATE PRODUCT + HITUNG SUBTOTAL
+            |------------------------------------------------
+            */
             foreach ($cart->items as $item) {
+
                 $variant = ProductVariant::with('product')
                     ->lockForUpdate()
                     ->find($item->product_variant_id);
@@ -65,27 +73,51 @@ class CheckoutController extends Controller
 
                 if ($variant->status !== 'active' || $variant->product->status !== 'active') {
                     DB::rollBack();
-                    return redirect()->route('cart.index')->with('error', 'Ada produk atau variasi yang tidak aktif.');
+                    return redirect()->route('cart.index')->with('error', 'Ada produk tidak aktif.');
                 }
 
                 if ($item->quantity > $variant->stock) {
                     DB::rollBack();
-                    return redirect()->route('cart.index')->with('error', 'Ada jumlah produk yang melebihi stok.');
+                    return redirect()->route('cart.index')->with('error', 'Stok tidak mencukupi.');
                 }
 
                 $lockedVariants[$variant->id] = $variant;
+
                 $grandTotal += $variant->price * $item->quantity;
             }
 
+            /*
+            |------------------------------------------------
+            | 2. ONGKIR STATIC (TAMBAHAN BARU)
+            |------------------------------------------------
+            */
+            $shippingCost = match ($request->shipping_method) {
+                'jne_reg' => 10000,
+                'jne_yes' => 20000,
+                'jnt' => 12000,
+                default => 0
+            };
+
+            /*
+            |------------------------------------------------
+            | 3. VALIDASI PAYMENT METHOD
+            |------------------------------------------------
+            */
             $paymentMethod = PaymentMethod::where('id', $request->payment_method_id)
                 ->where('is_active', true)
                 ->first();
 
             if (!$paymentMethod) {
                 DB::rollBack();
-                return redirect()->route('checkout.index')->with('error', 'Metode pembayaran tidak valid atau tidak aktif.');
+                return redirect()->route('checkout.index')
+                    ->with('error', 'Metode pembayaran tidak valid.');
             }
 
+            /*
+            |------------------------------------------------
+            | 4. SIMPAN ALAMAT USER
+            |------------------------------------------------
+            */
             $address = auth()->user()->addresses()->create([
                 'recipient_name' => $request->recipient_name,
                 'phone' => $request->phone,
@@ -96,23 +128,49 @@ class CheckoutController extends Controller
                 'full_address' => $request->full_address,
             ]);
 
+            /*
+            |------------------------------------------------
+            | 5. TOTAL FINAL (SUBTOTAL + ONGKIR)
+            |------------------------------------------------
+            */
+            $grandTotal += $shippingCost;
+
+            /*
+            |------------------------------------------------
+            | 6. CREATE ORDER
+            |------------------------------------------------
+            */
             $order = auth()->user()->orders()->create([
                 'address_id' => $address->id,
                 'payment_method_id' => $paymentMethod->id,
                 'order_code' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
+
                 'total_price' => $grandTotal,
+
+                // 🧾 PAYMENT INFO
                 'payment_method' => $paymentMethod->type,
                 'payment_method_name' => $paymentMethod->name,
                 'payment_bank_name' => $paymentMethod->bank_name,
                 'payment_account_number' => $paymentMethod->account_number,
                 'payment_account_name' => $paymentMethod->account_name,
                 'payment_instruction' => $paymentMethod->instruction,
+
+                // 🚚 SHIPPING INFO (BARU)
+                'shipping_method' => $request->shipping_method,
+                'shipping_cost' => $shippingCost,
+
                 'status' => 'waiting_payment',
                 'payment_deadline_at' => now()->addHours(24),
                 'notes' => $request->notes,
             ]);
 
+            /*
+            |------------------------------------------------
+            | 7. CREATE ORDER ITEMS + REDUCE STOCK
+            |------------------------------------------------
+            */
             foreach ($cart->items as $item) {
+
                 $variant = $lockedVariants[$item->product_variant_id];
                 $subtotal = $variant->price * $item->quantity;
 
@@ -129,13 +187,20 @@ class CheckoutController extends Controller
                 ]);
             }
 
+            /*
+            |------------------------------------------------
+            | 8. CLEAR CART
+            |------------------------------------------------
+            */
             $cart->items()->delete();
 
             DB::commit();
 
             return redirect()->route('orders.show', $order->id)
-                ->with('success', 'Checkout berhasil. Silakan lanjut ke pembayaran.');
+                ->with('success', 'Checkout berhasil.');
+
         } catch (\Throwable $th) {
+
             DB::rollBack();
 
             return redirect()->route('checkout.index')

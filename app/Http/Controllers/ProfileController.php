@@ -11,12 +11,12 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    public function edit(Request $request): View
+    public function edit()
     {
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => Auth::user()
         ]);
-    }
+   }
 
     public function update(Request $request): RedirectResponse
     {
@@ -68,6 +68,31 @@ class ProfileController extends Controller
         $user->save();
 
         return redirect()->route('profile.edit')->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    public function updateAddress(Request $request)
+    {
+    $request->validate([
+        'default_recipient_name' => ['required', 'string', 'max:255'],
+        'default_province' => ['required', 'string', 'max:255'],
+        'default_city' => ['required', 'string', 'max:255'],
+        'default_district' => ['required', 'string', 'max:255'],
+        'default_postal_code' => ['nullable', 'string', 'max:20'],
+        'default_full_address' => ['required', 'string'],
+    ]);
+
+    $user = auth()->user();
+
+    $user->update([
+        'default_recipient_name' => $request->default_recipient_name,
+        'default_province' => $request->default_province,
+        'default_city' => $request->default_city,
+        'default_district' => $request->default_district,
+        'default_postal_code' => $request->default_postal_code,
+        'default_full_address' => $request->default_full_address,
+    ]);
+
+    return back()->with('success', 'Alamat berhasil diperbarui');
     }
 
     public function destroy(Request $request): RedirectResponse
