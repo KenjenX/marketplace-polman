@@ -165,7 +165,8 @@
         <div class="row g-4">
             @foreach($products->take(4) as $product)
             <div class="col-lg-3 col-md-6">
-                <a href="{{ route('products.show', $product->id) }}" class="text-decoration-none group">
+                {{-- SEKARANG MENGGUNAKAN SLUG --}}
+                <a href="{{ route('products.show', $product->slug) }}" class="text-decoration-none group">
                     <div class="card border-0 h-100 product-card-modern bg-white shadow-sm">
                         <div class="card-img-top bg-light d-flex align-items-center justify-content-center overflow-hidden position-relative" style="height: 280px;">
                             @if($product->image)
