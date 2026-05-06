@@ -108,7 +108,7 @@
             <div class="mt-5 shadow-sm border border-white">
                 <div class="ratio ratio-21x9">
                     <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3961.033582498262!2d107.6186419!3d-6.8865985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e6f00735870d%3A0x264870d235069772!2sPoliteknik%20Manufaktur%20Bandung!5e0!3m2!1sid!2sid!4v1714440000000!5m2!1sid!2sid" 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3961.096716!2d107.617431!3d-6.8774688!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e6fd1653ca0f%3A0xac82e41858b63f34!2sPoliteknik%20Manufaktur%20Bandung!5e0!3m2!1sid!2sid!4v1714440000000!5m2!1sid!2sid"                        
                         style="border:0;" allowfullscreen="" loading="lazy">
                     </iframe>
                 </div>

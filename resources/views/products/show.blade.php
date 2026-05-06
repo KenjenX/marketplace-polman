@@ -36,10 +36,13 @@
     .swal2-popup { border-radius: 20px !important; font-family: sans-serif !important; }
     .swal2-styled.swal2-confirm { background-color: #013780 !important; border-radius: 50px !important; padding: 12px 30px !important; font-size: 13px !important; }
     .swal2-styled.swal2-cancel { border-radius: 50px !important; padding: 12px 30px !important; font-size: 13px !important; }
+    
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
 </style>
 
 <div class="container-fluid py-3">
-    {{-- NAVIGASI ALAMAT --}}
     <div class="breadcrumb-nav">
         <a href="{{ route('home') }}" class="breadcrumb-item-link">BERANDA</a>
         <img src="{{ asset('assets/img/next.png') }}" class="breadcrumb-next-icon" alt=">">
@@ -50,13 +53,11 @@
         <span class="breadcrumb-current">{{ $product->name }}</span>
     </div>
 
-    {{-- TOMBOL KEMBALI --}}
     <div class="back-prev-container">
         <a href="{{ url()->previous() }}" class="btn-back-prev"><img src="{{ asset('assets/img/next.png') }}" alt="Back"> Kembali</a>
     </div>
 
     <div class="row g-4">
-        {{-- FOTO PRODUK --}}
         <div class="col-lg-7">
             <div class="img-zoom-container" id="zoom-area">
                 <div class="fullscreen-btn" id="open-lightbox" style="position: absolute; top: 15px; right: 15px; width: 35px; height: 35px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); cursor: pointer;">
@@ -70,7 +71,6 @@
             </div>
         </div>
 
-        {{-- DETAIL --}}
         <div class="col-lg-5">
             <div class="ps-lg-3">
                 <div class="mb-1" style="font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #013780; opacity: 0.6;">{{ $product->category->name }}</div>
@@ -108,9 +108,9 @@
                         @csrf
                         <input type="hidden" name="variant_id" id="selected-variant-id">
                         <div id="quantity-area" class="mb-3 align-items-center gap-3" style="display: none;">
-                            <div class="input-group input-group-sm" style="width: 110px;">
+                            <div class="input-group input-group-sm" style="width: 120px;">
                                 <button class="btn btn-outline-dark px-2" type="button" id="btn-minus">-</button>
-                                <input type="number" name="quantity" id="prod-quantity" value="1" min="1" class="form-control text-center border-dark shadow-none" readonly>
+                                <input type="number" name="quantity" id="prod-quantity" value="1" min="1" class="form-control text-center border-dark shadow-none">
                                 <button class="btn btn-outline-dark px-2" type="button" id="btn-plus">+</button>
                             </div>
                             <div id="variant-stock-info" class="fw-bold text-muted" style="font-size: 11px;"></div>
@@ -141,6 +141,17 @@
     const imageModal = document.getElementById('image-modal');
     const modalImg = document.getElementById('modal-img');
     const form = document.getElementById('add-to-cart-form');
+    const quantityInput = document.getElementById('prod-quantity');
+
+    // Mencegah Form Submit saat tekan Enter di input quantity
+    if(quantityInput) {
+        quantityInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                return false;
+            }
+        });
+    }
 
     // Zoom Logic
     if(productImage && zoomArea) {
@@ -171,15 +182,14 @@
             const qtyArea = document.getElementById('quantity-area');
 
             if (qtyArea) {
-                // USER SUDAH LOGIN
                 qtyArea.style.display = 'flex';
                 document.getElementById('variant-stock-info').innerHTML = 'STOK: ' + stock;
-                document.getElementById('prod-quantity').max = stock;
+                quantityInput.max = stock;
+                quantityInput.value = 1;
                 document.getElementById('btn-add-cart').disabled = (stock <= 0);
                 document.getElementById('selected-variant-id').value = variantId;
                 if(form) form.action = `/cart/add/${variantId}`;
             } else {
-                // USER BELUM LOGIN - Tampilkan SweetAlert
                 Swal.fire({
                     title: 'Ingin memesan produk?',
                     text: "Silakan login terlebih dahulu untuk menambahkan produk inovasi Polman ke keranjang.",
@@ -199,11 +209,54 @@
         });
     });
 
+    // Validasi Input Manual
+    if (quantityInput) {
+        quantityInput.addEventListener('input', function() {
+            let value = parseInt(this.value);
+            const max = parseInt(this.max);
+
+            if (isNaN(value)) return;
+            if (value < 1) this.value = 1;
+            
+            if (value > max) {
+                showMaxStockAlert(max);
+                this.value = max;
+            }
+        });
+
+        quantityInput.addEventListener('blur', function() {
+            if (this.value === '' || parseInt(this.value) < 1) {
+                this.value = 1;
+            }
+        });
+    }
+
+    // Fungsi Alert Stok Maksimal
+    function showMaxStockAlert(max) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Stok Terbatas',
+            text: `Maaf, stok maksimal hanya tersedia ${max} unit.`,
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+
+    // Button +- Logic dengan Alert Maksimal
     if(document.getElementById('btn-plus')) {
-        document.getElementById('btn-plus').onclick = () => { const q = document.getElementById('prod-quantity'); if(parseInt(q.value) < parseInt(q.max)) q.value = parseInt(q.value) + 1; };
+        document.getElementById('btn-plus').onclick = () => { 
+            const currentVal = parseInt(quantityInput.value);
+            const maxVal = parseInt(quantityInput.max);
+            
+            if(currentVal < maxVal) {
+                quantityInput.value = currentVal + 1; 
+            } else {
+                showMaxStockAlert(maxVal);
+            }
+        };
     }
     if(document.getElementById('btn-minus')) {
-        document.getElementById('btn-minus').onclick = () => { const q = document.getElementById('prod-quantity'); if(parseInt(q.value) > 1) q.value = parseInt(q.value) - 1; };
+        document.getElementById('btn-minus').onclick = () => { if(parseInt(quantityInput.value) > 1) quantityInput.value = parseInt(quantityInput.value) - 1; };
     }
 </script>
 @endsection
