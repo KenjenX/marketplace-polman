@@ -20,6 +20,7 @@ use App\Models\Order;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\HomeController; // Pastikan ini ada
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\XenditCallbackController;
 
 Route::view('/about', 'about')->name('about');
 Route::view('/contact', 'contact')->name('contact');
@@ -120,5 +121,9 @@ Route::post('/email/verification-notification', function (Request $request) {
 
     return back()->with('resent', 'Link verifikasi dikirim ulang!');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+// Rute untuk callback Xendit
+Route::post('/xendit/callback', [XenditCallbackController::class, 'handleInvoice']);
+
 
 require __DIR__.'/auth.php';

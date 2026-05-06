@@ -16,6 +16,11 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\DB;
 
+use Xendit\Configuration;
+
+use Xendit\Invoice\InvoiceApi;
+
+use Xendit\Invoice\CreateInvoiceRequest;
 
 
 class CheckoutController extends Controller
@@ -49,8 +54,6 @@ class CheckoutController extends Controller
         return view('checkout.index', compact('cart', 'paymentMethods'));
 
     }
-
-
 
     public function store(Request $request)
 
@@ -109,8 +112,6 @@ class CheckoutController extends Controller
             $lockedVariants = [];
 
             $grandTotal = 0;
-
-
 
             /*
 
@@ -172,8 +173,6 @@ class CheckoutController extends Controller
 
             }
 
-
-
             /*
 
             |------------------------------------------------
@@ -195,8 +194,6 @@ class CheckoutController extends Controller
                 default => 0
 
             };
-
-
 
             /*
 
@@ -226,8 +223,6 @@ class CheckoutController extends Controller
 
             }
 
-
-
             /*
 
             |------------------------------------------------
@@ -256,8 +251,6 @@ class CheckoutController extends Controller
 
             ]);
 
-
-
             /*
 
             |------------------------------------------------
@@ -269,8 +262,6 @@ class CheckoutController extends Controller
             */
 
             $grandTotal += $shippingCost;
-
-
 
             /*
 
@@ -295,7 +286,6 @@ class CheckoutController extends Controller
                 'total_price' => $grandTotal,
 
 
-
                 // 🧾 PAYMENT INFO
 
                 'payment_method' => $paymentMethod->type,
@@ -311,7 +301,6 @@ class CheckoutController extends Controller
                 'payment_instruction' => $paymentMethod->instruction,
 
 
-
                 // 🚚 SHIPPING INFO (BARU)
 
                 'shipping_method' => $request->shipping_method,
@@ -322,13 +311,11 @@ class CheckoutController extends Controller
 
                 'status' => 'waiting_payment',
 
-                'payment_deadline_at' => now()->addHours(24),
+                'payment_deadline_at' => now()->addHours(1), // Batas waktu pembayaran 1 jam
 
                 'notes' => $request->notes,
 
             ]);
-
-
 
             /*
 
@@ -374,8 +361,6 @@ class CheckoutController extends Controller
 
             }
 
-
-
             /*
 
             |------------------------------------------------
@@ -388,30 +373,52 @@ class CheckoutController extends Controller
 
             $cart->items()->delete();
 
+            // CEK APAKAH METODE PEMBAYARAN ADALAH XENDIT
+            // Asumsi: Anda sudah menambah kolom 'code' di database dan isinya 'xendit'
+            if ($paymentMethod->code === 'xendit') {
+                
+                Configuration::setXenditKey(config('services.xendit.secret_key'));
+                $apiInstance = new InvoiceApi();
 
+                $create_invoice_request = new CreateInvoiceRequest([
+                    'external_id' => $order->order_code,
+                    'description' => 'Pembayaran Order ' . $order->order_code,
+                    'amount' => (double) $order->total_price,
+                    'invoice_duration' => 3600, // 1 Jam
+                    'customer' => [
+                        'given_names' => auth()->user()->display_name ?? auth()->user()->name,
+                        'email' => auth()->user()->email,
+                    ],
+                    'success_redirect_url' => route('orders.show', $order->id),
+                    'failure_redirect_url' => route('orders.show', $order->id),
+                ]);
 
-            DB::commit();
+                $result = $apiInstance->createInvoice($create_invoice_request);
+                
+                // Update URL Pembayaran ke database agar bisa diakses nanti di halaman detail order
+                $order->update([
+                    'payment_url' => $result['invoice_url'],
+                    'payment_deadline_at' => now()->addHours(1)
+                ]);
 
+                DB::commit();
 
+                // LANGSUNG REDIRECT KE HALAMAN PEMBAYARAN XENDIT
+                return redirect($result['invoice_url']);
 
-            return redirect()->route('orders.show', $order->id)
-
-                ->with('success', 'Checkout berhasil.');
-
-
+            } else {
+                // JIKA TRANSFER MANUAL (SEPERTI BCA TADI)
+                DB::commit();
+                return redirect()->route('orders.show', $order->id)
+                    ->with('success', 'Pesanan dibuat. Silakan transfer manual sesuai instruksi.');
+            }
 
         } catch (\Throwable $th) {
-
-
-
             DB::rollBack();
-
-
-
+            // Tambahkan log untuk memudahkan debug jika error
+            \Log::error('Checkout Error: ' . $th->getMessage());
             return redirect()->route('checkout.index')
-
-                ->with('error', 'Checkout gagal. Silakan coba lagi.');
-
+                ->with('error', 'Checkout gagal: ' . $th->getMessage());
         }
 
     }
