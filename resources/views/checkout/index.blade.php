@@ -66,7 +66,8 @@
                     <h4 class="fw-bold mb-4">Opsi Pengiriman</h4>
                     <div class="mb-4">
                         <label class="form-label fw-semibold">Pilih Kurir</label>
-                        <select name="shipping_method" class="form-select bg-light border-0 py-2 shadow-none" id="shippingMethod">
+                        <!-- Pastikan name-nya adalah shipping_method -->
+                        <select name="shipping_method" class="form-select" id="shippingMethod" required>
                             <option value="">-- Pilih Jasa Pengiriman --</option>
                             <option value="jne_reg">JNE REG - Rp 10.000</option>
                             <option value="jne_yes">JNE YES - Rp 20.000</option>

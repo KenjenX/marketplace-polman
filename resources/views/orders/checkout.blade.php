@@ -41,12 +41,13 @@
             <div class="card-header">Pilih Kurir</div>
             <div class="card-body">
 
-                <select name="shipping_method" class="form-select" required>
-                    <option value="">-- Pilih Kurir --</option>
-                    <option value="jne_reg">JNE REG - Rp 10.000</option>
-                    <option value="jne_yes">JNE YES - Rp 20.000</option>
-                    <option value="jnt">J&T - Rp 12.000</option>
-                </select>
+                <!-- Pastikan name-nya adalah shipping_method -->
+            <select name="shipping_method" class="form-select" id="shippingMethod" required>
+                <option value="">-- Pilih Jasa Pengiriman --</option>
+                <option value="jne_reg">JNE REG - Rp 10.000</option>
+                <option value="jne_yes">JNE YES - Rp 20.000</option>
+                <option value="jnt">J&T - Rp 12.000</option>
+            </select>
 
             </div>
         </div>

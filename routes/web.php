@@ -18,7 +18,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Order;
 use App\Http\Controllers\Admin\PaymentMethodController;
-use App\Http\Controllers\HomeController; // Pastikan ini ada
+use App\Http\Controllers\HomeController; 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\XenditCallbackController;
 
@@ -125,5 +125,7 @@ Route::post('/email/verification-notification', function (Request $request) {
 // Rute untuk callback Xendit
 Route::post('/xendit/callback', [XenditCallbackController::class, 'handleInvoice']);
 
+// Rute untuk user melihat pelacakan
+Route::get('/orders/track/{order_code}', [App\Http\Controllers\OrderTrackingController::class, 'track'])->name('orders.track');
 
 require __DIR__.'/auth.php';
