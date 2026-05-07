@@ -16,6 +16,7 @@ class ProductVariant extends Model
         'price',
         'stock',
         'status',
+        'image', // <-- SEKARANG SUDAH DITAMBAHKAN, PASTI BISA MASUK!
     ];
 
     public function product()

@@ -1,5 +1,6 @@
 @extends('layouts.store')
 
+@section('content')
 <style>
     .product-price span { letter-spacing: -0.2px; }
     .product-card-clean:hover { transform: translateY(-5px); }
@@ -17,78 +18,77 @@
         box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
         transition: all 0.2s ease;
     }
-    .modern-select:hover, .modern-select:focus {
-        background-color: #f1f3f5;
-        box-shadow: 0 0 0 3px rgba(1, 55, 128, 0.1);
+
+    /* Range Slider Styling */
+    .range-slider-container { position: relative; width: 100%; height: 40px; margin-top: 10px; }
+    .slider-track { width: 100%; height: 4px; background-color: #e9ecef; position: absolute; margin: auto; top: 0; bottom: 0; border-radius: 5px; }
+    .range-slider-container input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; outline: none; position: absolute; margin: auto; top: 0; bottom: 0; background-color: transparent; pointer-events: none; }
+    .range-slider-container input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; background-color: #fff; border: 2px solid #013780; border-radius: 50%; cursor: pointer; pointer-events: auto; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+    
+    /* CSS SLIDESHOW OTOMATIS */
+    .product-img-container {
+        width: 100%;
+        height: 220px;
+        background: #fff;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 1px solid #eee;
+        position: relative;
     }
 
-    .range-slider-container {
+    .slideshow-wrapper {
         position: relative;
         width: 100%;
-        height: 40px;
-        margin-top: 10px;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    .slider-track {
-        width: 100%;
-        height: 4px;
-        background-color: #e9ecef;
+
+    .slide-img {
         position: absolute;
-        margin: auto;
-        top: 0; bottom: 0;
-        border-radius: 5px;
+        max-width: 85%;
+        max-height: 85%;
+        object-fit: contain;
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
     }
-    .range-slider-container input[type="range"] {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 100%;
-        outline: none;
-        position: absolute;
-        margin: auto;
-        top: 0; bottom: 0;
-        background-color: transparent;
-        pointer-events: none;
+
+    /* Animasi untuk 2 Gambar */
+    @keyframes slideAnim2 {
+        0%, 45% { opacity: 1; }
+        50%, 95% { opacity: 0; }
+        100% { opacity: 1; }
     }
-    .range-slider-container input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        height: 18px; width: 18px;
-        background-color: #fff;
-        border: 2px solid #013780;
-        border-radius: 50%;
-        cursor: pointer;
-        pointer-events: auto;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+
+    /* Animasi untuk 3 Gambar */
+    @keyframes slideAnim3 {
+        0%, 28% { opacity: 1; }
+        33%, 95% { opacity: 0; }
+        100% { opacity: 1; }
     }
-    .range-slider-container input[type="range"]::-moz-range-thumb {
-        -moz-appearance: none;
-        height: 18px; width: 18px;
-        background-color: #fff;
-        border: 2px solid #013780;
-        border-radius: 50%;
-        cursor: pointer;
-        pointer-events: auto;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+
+    .single-img, .no-img {
+        max-width: 85%;
+        max-height: 85%;
+        object-fit: contain;
     }
+
     .price-input-container input::-webkit-outer-spin-button,
-    .price-input-container input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
+    .price-input-container input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 </style>
 
-@section('content')
 <div class="container-fluid px-lg-5 py-4">
     <div class="row">
         
-        {{-- ==========================================
-             1. SIDEBAR KIRI (FILTER, SEARCH & SORT)
-        =========================================== --}}
+        {{-- SIDEBAR FILTER --}}
         <div class="col-lg-3 mb-4">
             <div class="sidebar-filter pe-lg-4">
                 <h2 class="fw-bold mb-4">Produk</h2>
 
                 <form method="GET" action="{{ route('products.index') }}" id="filterForm">
-                    
-                    {{-- Search Bar --}}
                     <div class="input-group input-group-sm border-bottom border-secondary pb-1 mb-4">
                         <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0 bg-transparent px-0 shadow-none" style="font-size: 14px;" placeholder="Cari produk...">
                         <button class="btn border-0 text-muted" type="submit">
@@ -96,62 +96,42 @@
                         </button>
                     </div>
 
-                    {{-- Urutkan --}}
                     <h6 class="fw-bold mb-2 text-uppercase text-muted" style="font-size: 12px; letter-spacing: 1px;">Urutkan</h6>
                     <div class="mb-4">
-                        <select name="sort" class="form-select modern-select py-2 px-3 text-dark fw-medium shadow-none" style="font-size: 13px; cursor: pointer;" onchange="submitFilter()">
+                        <select name="sort" class="form-select modern-select py-2 px-3 text-dark fw-medium shadow-none" onchange="submitFilter()">
                             <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>Terbaru</option>
-                            <option value="az" {{ request('sort') == 'az' ? 'selected' : '' }}>A - Z (Nama)</option>
-                            <option value="za" {{ request('sort') == 'za' ? 'selected' : '' }}>Z - A (Nama)</option>
-                            <option value="price_low" {{ request('sort') == 'price_low' ? 'selected' : '' }}>Harga: Terendah</option>
-                            <option value="price_high" {{ request('sort') == 'price_high' ? 'selected' : '' }}>Harga: Tertinggi</option>
+                            <option value="az" {{ request('sort') == 'az' ? 'selected' : '' }}>A - Z</option>
+                            <option value="za" {{ request('sort') == 'za' ? 'selected' : '' }}>Z - A</option>
+                            <option value="price_low" {{ request('sort') == 'price_low' ? 'selected' : '' }}>Harga Terendah</option>
+                            <option value="price_high" {{ request('sort') == 'price_high' ? 'selected' : '' }}>Harga Tertinggi</option>
                         </select>
                     </div>
 
-                    {{-- Filter Harga Logaritmik --}}
                     <h6 class="fw-bold mb-2 text-uppercase text-muted" style="font-size: 12px; letter-spacing: 1px;">Harga</h6>
                     <div class="mb-4">
                         <div class="range-slider-container">
                             <div class="slider-track"></div>
-                            {{-- Range 0-100 sebagai persentase logaritmik --}}
-                            <input type="range" id="slider-1" min="0" max="100" step="0.1" value="0" oninput="slideOne()" onchange="submitFilter()">
-                            <input type="range" id="slider-2" min="0" max="100" step="0.1" value="100" oninput="slideTwo()" onchange="submitFilter()">
+                            <input type="range" id="slider-1" min="0" max="100" step="0.1" oninput="slideOne()" onchange="submitFilter()">
+                            <input type="range" id="slider-2" min="0" max="100" step="0.1" oninput="slideTwo()" onchange="submitFilter()">
                         </div>
-                        
-                        {{-- Hidden inputs untuk mengirim data ke Controller --}}
                         <input type="hidden" name="min_price" id="hidden-min" value="{{ request('min_price', $globalMinPrice) }}">
                         <input type="hidden" name="max_price" id="hidden-max" value="{{ request('max_price', $globalMaxPrice) }}">
-
                         <div class="row g-2 mt-1 price-input-container">
                             <div class="col-6">
-                                <div class="input-group input-group-sm border rounded">
-                                    <span class="input-group-text bg-transparent border-0 text-muted" style="font-size: 10px;">Min</span>
-                                    <input type="number" id="input-min" class="form-control border-0 ps-0 shadow-none" 
-                                           style="font-size: 12px; font-weight: 600;" 
-                                           value="{{ request('min_price', $globalMinPrice) }}"
-                                           onchange="syncSliderWithInput()">
-                                </div>
+                                <input type="number" id="input-min" class="form-control form-control-sm border shadow-none" style="font-size: 12px; font-weight: 600;" value="{{ request('min_price', $globalMinPrice) }}" onchange="syncSliderWithInput()">
                             </div>
                             <div class="col-6">
-                                <div class="input-group input-group-sm border rounded">
-                                    <span class="input-group-text bg-transparent border-0 text-muted" style="font-size: 10px;">Max</span>
-                                    <input type="number" id="input-max" class="form-control border-0 ps-0 shadow-none" 
-                                           style="font-size: 12px; font-weight: 600;" 
-                                           value="{{ request('max_price', $globalMaxPrice) }}"
-                                           onchange="syncSliderWithInput()">
-                                </div>
+                                <input type="number" id="input-max" class="form-control form-control-sm border shadow-none" style="font-size: 12px; font-weight: 600;" value="{{ request('max_price', $globalMaxPrice) }}" onchange="syncSliderWithInput()">
                             </div>
                         </div>
                     </div>
 
-                    {{-- Kategori List --}}
-                    <h6 class="fw-bold mb-3 text-uppercase text-muted" style="font-size: 12px; letter-spacing: 1px;">Bidang / Kategori</h6>
+                    <h6 class="fw-bold mb-3 text-uppercase text-muted" style="font-size: 12px; letter-spacing: 1px;">Kategori</h6>
                     <div class="mb-4">
                         @foreach($categories as $category)
                             <div class="form-check mb-2">
                                 <input class="form-check-input shadow-none" type="checkbox" name="categories[]" value="{{ $category->slug }}" id="cat_{{ $category->id }}"
-                                       {{ in_array($category->slug, request('categories', [])) ? 'checked' : '' }}
-                                       onchange="submitFilter()">
+                                       {{ in_array($category->slug, request('categories', [])) ? 'checked' : '' }} onchange="submitFilter()">
                                 <label class="form-check-label text-dark w-100 d-flex justify-content-between" style="font-size: 14px; cursor: pointer;" for="cat_{{ $category->id }}">
                                     <span>{{ $category->name }}</span>
                                     <span class="text-muted">({{ $category->products_count }})</span>
@@ -160,48 +140,61 @@
                         @endforeach
                     </div>
 
-                    @if(request()->hasAny(['search', 'categories', 'min_price', 'max_price', 'sort']))
+                    @if(request()->hasAny(['search', 'categories', 'min_price', 'max_price']))
                         <div class="d-grid mt-4">
-                            <a href="{{ route('products.index') }}" class="btn btn-light border shadow-sm fw-bold text-danger" style="border-radius: 12px;">
-                                <i class="bi bi-trash3 me-1"></i> Hapus Filter
-                            </a>
+                            <a href="{{ route('products.index') }}" class="btn btn-light border text-danger fw-bold rounded-3">Hapus Filter</a>
                         </div>
                     @endif
                 </form>
             </div>
         </div>
 
-        {{-- ==========================================
-             2. MAIN CONTENT KANAN (PRODUK)
-        =========================================== --}}
+        {{-- MAIN CONTENT --}}
         <div class="col-lg-9">
             <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
-                <h5 class="fw-bold mb-0 text-dark">Katalog Produk</h5>
-                <span class="text-muted small">
-                    Menampilkan <strong class="text-dark">{{ $products->total() }}</strong> dari <strong class="text-dark">{{ $totalAllProducts }}</strong> produk
-                </span>
+                <h5 class="fw-bold mb-0">Katalog Produk</h5>
+                <span class="text-muted small">Menampilkan <strong>{{ $products->total() }}</strong> produk</span>
             </div>
 
             <div class="row row-cols-2 row-cols-md-3 g-4">
                 @forelse($products as $product)
                     <div class="col">
                         <a href="{{ route('products.show', $product->slug) }}" class="text-decoration-none text-dark">
-                            <div class="product-card-clean border shadow-sm" style="transition: 0.3s; border-radius: 12px; overflow: hidden;">
-                                <div style="width: 100%; height: 220px; background: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #eee;">
-                                    @if($product->image)
-                                        <img src="{{ asset('storage/' . $product->image) }}" style="max-width: 90%; max-height: 90%; object-fit: contain;">
+                            <div class="product-card-clean border shadow-sm" style="transition: 0.3s; border-radius: 12px; overflow: hidden; background: #fff;">
+                                
+                                <div class="product-img-container">
+                                    @php
+                                        $vImages = $product->variants->whereNotNull('image')->values();
+                                        $imgCount = $vImages->count();
+                                    @endphp
+
+                                    @if($imgCount >= 2)
+                                        <div class="slideshow-wrapper">
+                                            @php 
+                                                $displayCount = min($imgCount, 3); 
+                                                $totalDuration = $displayCount * 3; // 3 detik per gambar
+                                            @endphp
+                                            @foreach($vImages->take(3) as $index => $vImg)
+                                                <img src="{{ asset('storage/' . $vImg->image) }}" 
+                                                     class="slide-img" 
+                                                     style="animation: slideAnim{{ $displayCount }} {{ $totalDuration }}s infinite; animation-delay: {{ $index * 3 }}s;"
+                                                     alt="{{ $product->name }}">
+                                            @endforeach
+                                        </div>
+                                    @elseif($imgCount == 1)
+                                        <img src="{{ asset('storage/' . $vImages->first()->image) }}" class="single-img" alt="{{ $product->name }}">
+                                    @elseif($product->image)
+                                        <img src="{{ asset('storage/' . $product->image) }}" class="single-img" alt="{{ $product->name }}">
                                     @else
-                                        <img src="{{ asset('assets/img/foto_tidak_tersedia.png') }}" style="max-width: 60px; opacity: 0.1;">
+                                        <img src="{{ asset('assets/img/foto_tidak_tersedia.png') }}" class="no-img" style="opacity: 0.1;">
                                     @endif
                                 </div>
-                                <div style="padding: 15px; text-align: left; background: #fff;">
-                                    <small style="font-size: 10px; text-transform: uppercase; color: #999; letter-spacing: 1px; display: block; margin-bottom: 4px;">
-                                        {{ $product->category->name }}
-                                    </small>
-                                    <h6 style="font-size: 14px; font-weight: 700; margin-bottom: 4px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #333;">
-                                        {{ $product->name }}
-                                    </h6>
-                                    <div class="product-price mt-2" style="font-size: 14px; color: #013780; font-weight: 700;">
+
+                                <div style="padding: 15px;">
+                                    <small class="text-muted text-uppercase" style="font-size: 10px; letter-spacing: 1px;">{{ $product->category->name }}</small>
+                                    <h6 class="fw-bold text-dark mt-1" style="font-size: 14px; line-height: 1.4; height: 40px; overflow: hidden;">{{ $product->name }}</h6>
+                                    
+                                    <div class="product-price mt-2" style="font-size: 14px; color: #013780; font-weight: 800;">
                                         @php 
                                             $minP = $product->variants->min('price');
                                             $maxP = $product->variants->max('price');
@@ -211,7 +204,7 @@
                                         @elseif($product->variants->count() > 0)
                                             Rp{{ number_format($minP, 0, ',', '.') }}
                                         @else
-                                            <span class="text-muted fw-normal fst-italic" style="font-size: 12px;">Harga belum tersedia</span>
+                                            <span class="text-muted small italic">Harga belum tersedia</span>
                                         @endif
                                     </div>
                                 </div>
@@ -220,32 +213,21 @@
                     </div>
                 @empty
                     <div class="col-12 text-center py-5">
-                        <div class="mb-3">
-                            <img src="{{ asset('assets/img/foto_tidak_tersedia.png') }}" style="width: 100px; opacity: 0.15;">
-                        </div>
-                        <h6 class="fw-bold text-dark mb-1">Produk tidak ditemukan</h6>
+                        <p class="text-muted">Produk tidak ditemukan.</p>
                     </div>
                 @endforelse
             </div>
 
-            <div class="d-flex justify-content-center mt-5 mb-5">
-                <div class="custom-pagination">
-                    @if ($products->total() > $products->perPage())
-                        {{ $products->appends(request()->query())->links() }}
-                    @else
-                        <ul class="pagination"><li class="page-item active"><span class="page-link">1</span></li></ul>
-                    @endif
-                </div>
+            <div class="d-flex justify-content-center mt-5">
+                {{ $products->appends(request()->query())->links() }}
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Config Logaritmik
     const minP = {{ $globalMinPrice }};
     const maxP = {{ $globalMaxPrice }};
-    // Gunakan log10 agar sebaran harga murah lebih luas di slider
     const minLog = Math.log10(minP || 1); 
     const maxLog = Math.log10(maxP);
 
@@ -257,66 +239,31 @@
     const hiddenMax = document.getElementById("hidden-max");
     const sliderTrack = document.querySelector(".slider-track");
 
-    // Konversi Persentase Slider ke Nilai Harga Rupiah (Log)
-    function positionToValue(pos) {
-        return Math.round(Math.pow(10, minLog + (pos / 100) * (maxLog - minLog)));
-    }
-
-    // Konversi Nilai Harga Rupiah ke Persentase Slider (Log)
-    function valueToPosition(val) {
-        return ((Math.log10(val || 1) - minLog) / (maxLog - minLog)) * 100;
-    }
+    function positionToValue(pos) { return Math.round(Math.pow(10, minLog + (pos / 100) * (maxLog - minLog))); }
+    function valueToPosition(val) { return ((Math.log10(val || 1) - minLog) / (maxLog - minLog)) * 100; }
 
     function slideOne() {
-        if(parseFloat(slider2.value) - parseFloat(slider1.value) <= 1){
-            slider1.value = parseFloat(slider2.value) - 1;
-        }
+        if(parseFloat(slider2.value) - parseFloat(slider1.value) <= 1) slider1.value = parseFloat(slider2.value) - 1;
         const val = positionToValue(slider1.value);
-        inputMin.value = val;
-        hiddenMin.value = val;
+        inputMin.value = val; hiddenMin.value = val;
         fillColor();
     }
 
     function slideTwo() {
-        if(parseFloat(slider2.value) - parseFloat(slider1.value) <= 1){
-            slider2.value = parseFloat(slider1.value) + 1;
-        }
+        if(parseFloat(slider2.value) - parseFloat(slider1.value) <= 1) slider2.value = parseFloat(slider1.value) + 1;
         const val = positionToValue(slider2.value);
-        inputMax.value = val;
-        hiddenMax.value = val;
+        inputMax.value = val; hiddenMax.value = val;
         fillColor();
-    }
-
-    function syncSliderWithInput() {
-        let vMin = Math.max(minP, Math.min(maxP, parseInt(inputMin.value)));
-        let vMax = Math.max(minP, Math.min(maxP, parseInt(inputMax.value)));
-        
-        if(vMin > vMax) vMin = vMax;
-        
-        inputMin.value = vMin;
-        inputMax.value = vMax;
-        hiddenMin.value = vMin;
-        hiddenMax.value = vMax;
-
-        slider1.value = valueToPosition(vMin);
-        slider2.value = valueToPosition(vMax);
-        
-        fillColor();
-        submitFilter();
     }
 
     function fillColor() {
-        const p1 = slider1.value;
-        const p2 = slider2.value;
+        const p1 = slider1.value; const p2 = slider2.value;
         sliderTrack.style.background = `linear-gradient(to right, #e9ecef ${p1}%, #013780 ${p1}%, #013780 ${p2}%, #e9ecef ${p2}%)`;
     }
 
-    function submitFilter() {
-        document.getElementById("filterForm").submit();
-    }
+    function submitFilter() { document.getElementById("filterForm").submit(); }
 
     window.onload = function() {
-        // Inisialisasi posisi slider berdasarkan value request atau global
         slider1.value = valueToPosition(parseInt(hiddenMin.value));
         slider2.value = valueToPosition(parseInt(hiddenMax.value));
         fillColor();
