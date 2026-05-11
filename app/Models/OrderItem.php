@@ -20,6 +20,12 @@ class OrderItem extends Model
         'subtotal',
     ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONSHIPS
+    |--------------------------------------------------------------------------
+    */
+
     public function order()
     {
         return $this->belongsTo(Order::class);
@@ -30,8 +36,11 @@ class OrderItem extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function variant()
+    public function productVariant()
     {
-        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
+        return $this->belongsTo(
+            ProductVariant::class,
+            'product_variant_id'
+        );
     }
 }

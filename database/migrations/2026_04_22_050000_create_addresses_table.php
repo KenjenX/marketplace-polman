@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('recipient_name');
             $table->string('phone');
             $table->string('province');
-            $table->string('city');
+            $table->string('city_id')->nullable()->after('city');
             $table->string('district');
             $table->string('postal_code')->nullable();
             $table->text('full_address');
@@ -24,6 +24,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('addresses');
+        Schema::table('addresses', function (Blueprint $table) {
+        $table->dropColumn('city_id');
+       });
     }
 };

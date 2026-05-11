@@ -27,14 +27,15 @@
                 @forelse($orders as $order)
                     @php
                         $orderStatusClass = match($order->status) {
-                            'waiting_payment'            => 'bg-warning text-dark',
+                            'waiting_payment'           => 'bg-warning text-dark',
                             'waiting_receipt_validation' => 'bg-info text-dark',
-                            'processing'                 => 'bg-primary',
-                            'completed'                  => 'bg-success',
-                            'payment_rejected', 
-                            'cancelled', 
-                            'expired'                    => 'bg-danger',
-                            default                      => 'bg-secondary',
+                            'processing'                => 'bg-primary',
+                            'shipped'                   => 'bg-primary',
+                            'completed'                 => 'bg-success',
+                            'payment_rejected'          => 'bg-danger',
+                            'cancelled'                 => 'bg-danger',
+                            'expired'                   => 'bg-danger',
+                            default                     => 'bg-secondary',
                         };
                     @endphp
 
@@ -47,51 +48,57 @@
                         </td>
                         <td>Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
                         <td>
-                            {{-- Menampilkan nama metode pembayaran --}}
                             <span class="small">{{ $order->payment_method_name ?: $order->payment_method }}</span>
                         </td>
                         <td>
-                            {{-- Kolom Status Order dengan Gaya Solid --}}
                             <span class="badge {{ $orderStatusClass }} px-2 py-2" style="min-width: 100px;">
                                 {{ str_replace('_', ' ', $order->status) }}
                             </span>
                         </td>
                         <td>
-                            {{-- Kolom Status Bukti dengan Gaya Solid --}}
-                            @if($order->payment_method_name == 'Pembayaran Online (Xendit)')
-                                @if(in_array($order->status, ['processing', 'completed']))
-                                    <span class="badge bg-success px-2 py-2">Terverifikasi Otomatis</span>
-                                @else
-                                    <span class="badge bg-warning text-dark px-2 py-2">Menunggu Pembayaran</span>
-                                @endif
-                            @else
-                                {{-- Logika untuk Manual Transfer --}}
-                                @if($order->paymentReceipt)
-                                    @php
-                                        $receiptStatus = $order->paymentReceipt->validation_status;
-                                        $receiptBadge = match($receiptStatus) {
-                                            'approved', 'accepted' => 'bg-success',
-                                            'rejected'             => 'bg-danger',
-                                            default                => 'bg-info text-dark', // pending
-                                        };
-                                    @endphp
-                                    <span class="badge {{ $receiptBadge }} px-2 py-2">
-                                        {{ ucfirst($receiptStatus) }}
+                            {{-- LOGIKA 1: JIKA XENDIT --}}
+                            @if($order->payment_method === 'xendit' || str_contains(strtolower($order->payment_method_name), 'xendit'))
+                                @if(in_array($order->status, ['processing', 'shipped', 'completed']))
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-patch-check-fill me-1"></i> Terkonfirmasi
                                     </span>
+                                @elseif($order->status == 'waiting_payment')
+                                    <span class="badge bg-warning text-dark">Menunggu Bayar</span>
+                                @elseif($order->status == 'expired')
+                                    <span class="badge bg-danger">Kadaluarsa</span>
                                 @else
-                                    <span class="badge bg-secondary px-2 py-2">Belum Upload</span>
+                                    <span class="badge bg-secondary text-white">Otomatis</span>
                                 @endif
+                                
+                            {{-- LOGIKA 2: JIKA TRANSFER MANUAL (ADA BUKTI) --}}
+                            @elseif($order->paymentReceipt)
+                                @php
+                                    $valStatus = $order->paymentReceipt->validation_status;
+                                    $valBadge = match($valStatus) {
+                                        'approved', 'accepted' => 'bg-success',
+                                        'rejected' => 'bg-danger',
+                                        default => 'bg-info text-dark',
+                                    };
+                                @endphp
+                                <span class="badge {{ $valBadge }}">{{ ucfirst($valStatus) }}</span>
+                            
+                            {{-- LOGIKA 3: TRANSFER MANUAL TAPI BELUM UPLOAD --}}
+                            @else
+                                <span class="badge bg-light text-muted border">Belum Upload</span>
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-outline-primary btn-sm">
+                            <a href="{{ route('admin.orders.show', $order->uuid) }}" class="btn btn-outline-primary btn-sm w-100">
                                 <i class="bi bi-search me-1"></i> Detail
                             </a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-4">Belum ada order.</td>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            Belum ada pesanan masuk.
+                        </td>
                     </tr>
                 @endforelse
             </tbody>

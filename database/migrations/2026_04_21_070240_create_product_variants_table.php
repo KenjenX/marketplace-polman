@@ -12,9 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->text('specification')->nullable();
-            $table->decimal('price', 12, 2)->default(0);
-            $table->integer('stock')->default(0);
+            $table->decimal('price', 12, 2);
+            $table->integer('stock');
             $table->string('status')->default('active');
             $table->timestamps();
         });

@@ -22,7 +22,7 @@
                     <div class="fw-semibold">Rp {{ number_format($order->total_price, 0, ',', '.') }}</div>
                 </div>
 
-                <div class="col-lg-3">
+                <div class="col-lg-2">
                     <div class="text-muted small">Metode Pembayaran</div>
                     <div>{{ $order->payment_method }}</div>
                 </div>
@@ -36,6 +36,7 @@
                                 'waiting_receipt_validation' => 'badge-waiting-validation',
                                 'payment_rejected' => 'badge-rejected',
                                 'processing' => 'badge-processing',
+                                'shipped' => 'badge-processing',
                                 'completed' => 'badge-completed',
                                 'cancelled' => 'badge-cancelled',
                                 'expired' => 'badge-expired',
@@ -43,22 +44,33 @@
                             };
                         @endphp
 
+                        <span class="badge status-badge {{ $statusClass }}">
+                            {{ str_replace('_', ' ', $order->status) }}
+                        </span>
+
                         @if(in_array($order->status, ['waiting_payment', 'payment_rejected']) && $order->payment_deadline_at)
-                            <div class="small text-muted mt-1">
-                                Batas pembayaran: {{ $order->payment_deadline_at->format('d M Y H:i') }}
+                            <div class="small text-muted mt-1" style="font-size: 0.7rem;">
+                                Batas: {{ $order->payment_deadline_at->format('d M H:i') }}
                             </div>
                         @endif
-
-                        <span class="badge status-badge {{ $statusClass }}">
-                            {{ $order->status }}
-                        </span>
                     </div>
                 </div>
 
-                <div class="col-lg-2 text-lg-end">
-                    <a href="{{ route('orders.show', $order->id) }}" class="btn btn-outline-primary btn-sm">
-                        Lihat Detail
-                    </a>
+                {{-- KOLOM AKSI: Penempatan tombol Lacak Pesanan --}}
+               <div class="col-lg-3 text-lg-end">
+                    <div class="d-flex flex-column flex-lg-row gap-2 justify-content-lg-end">
+                        @if($order->tracking_number)
+                            {{-- PERBAIKAN: Gunakan uuid --}}
+                            <a href="{{ route('orders.track', $order->uuid) }}" class="btn btn-sm btn-info text-white">
+                                <i class="bi bi-truck me-1"></i> Lacak Pesanan
+                            </a>
+                        @endif
+
+                        {{-- PERBAIKAN: Gunakan uuid --}}
+                        <a href="{{ route('orders.show', $order->uuid) }}" class="btn btn-outline-primary btn-sm">
+                            Lihat Detail
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

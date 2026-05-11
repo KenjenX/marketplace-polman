@@ -15,6 +15,7 @@
                     'waiting_receipt_validation' => 'badge-waiting-validation',
                     'payment_rejected' => 'badge-rejected',
                     'processing' => 'badge-processing',
+                    'shipped' => 'bg-info',
                     'completed' => 'badge-completed',
                     'cancelled' => 'badge-cancelled',
                     'expired' => 'badge-expired',
@@ -53,9 +54,8 @@
                 <div>
                     <h6 class="fw-bold mb-1">Segera Selesaikan Pembayaran</h6>
                     <p class="small mb-0">
-                        Sisa waktu pembayaran Anda: 
-                        <span id="countdown" class="badge bg-danger fs-6 ms-1" 
-                            data-deadline="{{ $order->payment_deadline_at->format('Y-m-d H:i:s') }}">
+                        Sisa waktu pembayaran Anda:
+                        <span id="countdown" class="badge bg-danger fs-6 ms-1">
                             -- : -- : --
                         </span>
                     </p>
@@ -121,74 +121,59 @@
                 <p class="mb-1 fw-bold">{{ $order->address->recipient_name }}</p>
                 <p class="mb-1">{{ $order->address->phone }}</p>
                 <p class="mb-1">{{ $order->address->full_address }}</p>
-                <p class="mb-0 text-muted small">{{ $order->address->district }}, {{ $order->address->city }}, {{ $order->address->province }} ({{ $order->address->postal_code }})</p>
+                <p class="mb-0 text-muted small">{{ $order->address->district ?? '-' }}, {{ $order->address->city ?? '-' }}, {{ $order->address->province ?? '-' }} ({{ $order->address->postal_code }})</p>
             </div>
 
-            {{-- Instruksi Pembayaran (Hanya muncul jika bukan Xendit ATAU jika via Xendit tapi status masih waiting) --}}
-            @if(!$order->payment_url || ($order->payment_url && $order->status == 'waiting_payment'))
-            <div class="border rounded-4 p-3 mb-3 bg-light">
-                <h5 class="mb-3">Instruksi Pembayaran</h5>
-                <p class="mb-2">Metode: <strong>{{ $order->payment_method_name ?: $order->payment_method }}</strong></p>
+            {{-- INFORMASI PEMBAYARAN --}}
+            <div class="border rounded-4 p-3 bg-white shadow-sm">
+                <h5 class="mb-3">Informasi Pembayaran</h5>
+                <p class="mb-2"><strong>Metode:</strong> {{ $order->payment_method_name ?: $order->payment_method }}</p>
 
-                @if($order->payment_bank_name)
-                    <div class="mb-1">Bank: <strong>{{ $order->payment_bank_name }}</strong></div>
-                    <div class="mb-1">No. Rekening: <strong>{{ $order->payment_account_number }}</strong></div>
-                    <div class="mb-1">Atas Nama: <strong>{{ $order->payment_account_name }}</strong></div>
-                @endif
-
-                @if($order->payment_instruction)
-                    <div class="mt-3 text-muted small p-2 border-start border-3">
-                        {!! nl2br(e($order->payment_instruction)) !!}
-                    </div>
-                @endif
-            </div>
-            @endif
-
-            {{-- BUKTI PEMBAYARAN (PERBAIKAN LOGIKA SESUAI PERMINTAAN) --}}
-            <div class="border rounded-4 p-3">
-                <h5>Bukti Pembayaran</h5>
-
-                @if($order->status === 'processing' || $order->status === 'completed')
-                    {{-- Jika sudah lunas --}}
-                    <div class="alert alert-success border-0 mb-0">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        Pembayaran Berhasil Dikonfirmasi.
-                    </div>
-                    @if($order->paymentReceipt)
-                        <a href="{{ asset('storage/' . $order->paymentReceipt->receipt_file) }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2 w-100">
-                            Lihat Struk
-                        </a>
-                    @endif
-
-                @elseif($order->paymentReceipt && $order->status === 'waiting_receipt_validation')
-                    {{-- Jika sudah upload tapi menunggu validasi admin --}}
-                    <div class="alert alert-info border-0 mb-2">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        Bukti sudah dikirim, menunggu validasi admin.
-                    </div>
-                    <a href="{{ asset('storage/' . $order->paymentReceipt->receipt_file) }}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
-                        Lihat Struk yang Dikirim
-                    </a>
-
-                @elseif(in_array($order->status, ['waiting_payment', 'payment_rejected']))
-                    {{-- FORM UPLOAD MANUAL --}}
-                    @if($order->payment_method_name == 'Pembayaran Online (Xendit)')
-                        {{-- Khusus Xendit --}}
-                        <div class="alert alert-warning border-0 small mb-2">
-                            Menunggu pembayaran otomatis via Xendit.
-                        </div>
-                        <a href="{{ $order->payment_url }}" target="_blank" class="btn btn-primary btn-sm w-100">
-                            Bayar via Xendit
-                        </a>
-                    @else
-                        {{-- Khusus Transfer Manual (BCA, dll) --}}
-                        @if($order->status === 'payment_rejected')
-                            <div class="alert alert-danger border-0 small mb-2">
-                                Bukti sebelumnya ditolak. Silakan upload ulang.
+                @if($order->payment_method_name == 'Pembayaran Online (Xendit)')
+                    <div class="mt-3">
+                        @if(in_array($order->status, ['processing', 'shipped', 'completed']))
+                            <div class="alert alert-success border-0 py-2 mb-1">
+                                <i class="bi bi-patch-check-fill me-2"></i> Pembayaran Berhasil Dikonfirmasi
+                            </div>
+                            <small class="text-muted">Diverifikasi otomatis oleh sistem Xendit.</small>
+                        @elseif($order->status == 'waiting_payment')
+                            <div class="alert alert-warning border-0 py-2 text-dark mb-1">
+                                <i class="bi bi-clock-history me-2"></i> Menunggu Pembayaran
+                            </div>
+                            <a href="{{ $order->payment_url }}" target="_blank" class="btn btn-outline-primary btn-sm w-100 mt-2">
+                                Link Pembayaran Xendit
+                            </a>
+                        @elseif($order->status == 'cancelled' || $order->status == 'expired')
+                            <div class="alert alert-secondary border-0 py-2 mb-0">
+                                <i class="bi bi-x-circle me-2"></i> Transaksi Dibatalkan
                             </div>
                         @endif
-
-                        <form action="{{ route('orders.uploadReceipt', $order->id) }}" method="POST" enctype="multipart/form-data">
+                    </div>
+                @else
+                    {{-- MANUAL TRANSFER LOGIC --}}
+                    @if(in_array($order->status, ['processing', 'shipped', 'completed']))
+                        <div class="alert alert-success border-0 py-2 mb-1">
+                            <i class="bi bi-patch-check-fill me-2"></i> Pembayaran Berhasil Dikonfirmasi
+                        </div>
+                        @if($order->paymentReceipt)
+                            <a href="{{ asset('storage/' . $order->paymentReceipt->receipt_file) }}" target="_blank" class="text-decoration-none small">
+                                <i class="bi bi-image me-1"></i> Lihat bukti transfer Anda
+                            </a>
+                        @endif
+                    @elseif($order->status === 'waiting_receipt_validation')
+                        <div class="alert alert-info border-0 py-2 mb-1">
+                            <i class="bi bi-hourglass-split me-2"></i> Menunggu Validasi Admin
+                        </div>
+                        <small class="text-muted">Bukti transfer Anda sedang diperiksa.</small>
+                    @elseif(in_array($order->status, ['waiting_payment', 'payment_rejected']))
+                        @if($order->status === 'payment_rejected')
+                            <div class="alert alert-danger border-0 py-2 mb-2 small">
+                                <i class="bi bi-x-octagon me-2"></i> Bukti sebelumnya ditolak. Mohon upload ulang.
+                            </div>
+                        @endif
+                        
+                        {{-- PERBAIKAN DI SINI: Gunakan uuid dan pastikan route name sesuai --}}
+                        <form action="{{ route('orders.upload_receipt', $order->uuid) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="mb-3">
                                 <label class="form-label small fw-bold">Upload Struk Transfer (JPG/PNG)</label>
@@ -202,58 +187,79 @@
                             </button>
                         </form>
                     @endif
-                @else
-                    <p class="text-muted small">Tidak ada informasi pembayaran.</p>
                 @endif
             </div>
         </div>
     </div>
 
-    <a href="{{ route('orders.index') }}" class="btn btn-link px-0 mt-4">← Kembali ke daftar order</a>
-</div>
-@endsection
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+        <a href="{{ route('orders.index') }}" class="btn btn-primary rounded-4 shadow-sm px-4">
+            <i class="bi bi-arrow-left me-1"></i> Kembali ke daftar order
+        </a>
 
-{{-- Script Countdown --}}
+        @if(in_array($order->status, ['shipped', 'completed']))
+            {{-- Gunakan uuid --}}
+            <a href="{{ route('orders.track', $order->uuid) }}" class="btn btn-primary rounded-4 shadow-sm px-4">
+                <i class="bi bi-geo-alt me-2"></i> Lacak Pesanan
+            </a>
+        @endif
+    </div>
+</div>
+
+{{-- SCRIPT SECTION --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const countdownElement = document.getElementById('countdown');
-    
-    if (countdownElement) {
-        const deadlineString = countdownElement.getAttribute('data-deadline');
-        const deadline = new Date(deadlineString.replace(/-/g, "/")).getTime();
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // 1. LOGIKA COUNTDOWN
+        @if($order->status == 'waiting_payment' && $order->payment_deadline_at)
+            const expiryDate = new Date("{{ $order->payment_deadline_at->format('Y-m-d H:i:s') }}").getTime();
+            const countdownElement = document.getElementById("countdown");
 
-        const x = setInterval(function() {
-            const now = new Date().getTime();
-            const distance = deadline - now;
+            const x = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = expiryDate - now;
 
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                if (distance < 0) {
+                    clearInterval(x);
+                    countdownElement.innerHTML = "EXPIRED";
+                    location.reload();
+                    return;
+                }
 
-            countdownElement.innerHTML = 
-                (hours < 10 ? "0" + hours : hours) + "j : " + 
-                (minutes < 10 ? "0" + minutes : minutes) + "m : " + 
-                (seconds < 10 ? "0" + seconds : seconds) + "d";
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-            if (distance < 0) {
-                clearInterval(x);
-                countdownElement.innerHTML = "WAKTU HABIS";
+                countdownElement.innerHTML = 
+                    (hours < 10 ? "0" + hours : hours) + " : " + 
+                    (minutes < 10 ? "0" + minutes : minutes) + " : " + 
+                    (seconds < 10 ? "0" + seconds : seconds);
+            }, 1000);
+        @endif
+
+        // 2. LOGIKA SWEETALERT SHIPPED
+        @if($order->status === 'shipped')
+            const orderUuid = "{{ $order->uuid }}";
+            const hasShownAlert = localStorage.getItem('alert_shipped_' + orderUuid);
+
+            if (!hasShownAlert) {
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Pesanan Sudah Expired',
-                    text: 'Transaksi tidak bisa dilakukan. Silahkan buat pesanan kembali.',
-                    confirmButtonText: 'Oke, Mengerti',
-                    confirmButtonColor: '#d33',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false
+                    icon: 'info',
+                    title: 'Pesanan Dalam Perjalanan',
+                    text: 'Pesananmu sudah diserahkan ke kurir dengan nomor resi: {{ $order->tracking_number }}. Mau lacak sekarang?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Lacak!',
+                    cancelButtonText: 'Nanti Saja',
+                    confirmButtonColor: '#0d6efd'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location.href = "{{ route('products.index') }}";
+                        window.location.href = "{{ route('orders.track', $order->uuid) }}";
                     }
                 });
+                localStorage.setItem('alert_shipped_' + orderUuid, 'true');
             }
-        }, 1000);
-    }
-});
+        @endif
+    });
 </script>
+@endsection

@@ -9,14 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->timestamp('payment_deadline_at')->nullable()->after('status');
+            $table->string('courier_name')->nullable()->after('shipping_method');
         });
     }
 
     public function down(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->dropColumn('payment_deadline_at');
+            $table->dropColumn('courier_name');
         });
     }
 };
