@@ -22,6 +22,9 @@ class Order extends Model
         'payment_account_number',
         'payment_account_name',
         'payment_instruction',
+        'shipping_method',  // sudah ada mungkin
+        'courier_name',     // 👈 TAMBAHKAN INI
+        'shipping_cost',
         'status',
         'payment_deadline_at',
         'notes',

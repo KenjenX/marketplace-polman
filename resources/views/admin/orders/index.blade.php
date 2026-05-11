@@ -27,21 +27,14 @@
                 @forelse($orders as $order)
                     @php
                         $orderStatusClass = match($order->status) {
-                            'waiting_payment' => 'badge-waiting-payment',
-                            'waiting_receipt_validation' => 'badge-waiting-validation',
-                            'payment_rejected' => 'badge-rejected',
-                            'processing' => 'badge-processing',
-                            'completed' => 'badge-completed',
-                            'cancelled' => 'badge-cancelled',
-                            'expired' => 'badge-expired',
-                            default => 'text-bg-primary',
-                        };
-
-                        $receiptStatusClass = match(optional($order->paymentReceipt)->validation_status) {
-                            'pending' => 'badge-waiting-validation',
-                            'accepted' => 'badge-completed',
-                            'rejected' => 'badge-rejected',
-                            default => 'badge-cancelled',
+                            'waiting_payment'            => 'bg-warning text-dark',
+                            'waiting_receipt_validation' => 'bg-info text-dark',
+                            'processing'                 => 'bg-primary',
+                            'completed'                  => 'bg-success',
+                            'payment_rejected', 
+                            'cancelled', 
+                            'expired'                    => 'bg-danger',
+                            default                      => 'bg-secondary',
                         };
                     @endphp
 
@@ -53,32 +46,52 @@
                             <small class="text-muted">{{ $order->user->email }}</small>
                         </td>
                         <td>Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
-                        <td>{{ $order->payment_method }}</td>
                         <td>
-                            <span class="badge status-badge {{ $orderStatusClass }}">
-                                {{ $order->status }}
+                            {{-- Menampilkan nama metode pembayaran --}}
+                            <span class="small">{{ $order->payment_method_name ?: $order->payment_method }}</span>
+                        </td>
+                        <td>
+                            {{-- Kolom Status Order dengan Gaya Solid --}}
+                            <span class="badge {{ $orderStatusClass }} px-2 py-2" style="min-width: 100px;">
+                                {{ str_replace('_', ' ', $order->status) }}
                             </span>
                         </td>
                         <td>
-                            @if($order->paymentReceipt)
-                                <span class="badge status-badge {{ $receiptStatusClass }}">
-                                    {{ $order->paymentReceipt->validation_status }}
-                                </span>
+                            {{-- Kolom Status Bukti dengan Gaya Solid --}}
+                            @if($order->payment_method_name == 'Pembayaran Online (Xendit)')
+                                @if(in_array($order->status, ['processing', 'completed']))
+                                    <span class="badge bg-success px-2 py-2">Terverifikasi Otomatis</span>
+                                @else
+                                    <span class="badge bg-warning text-dark px-2 py-2">Menunggu Pembayaran</span>
+                                @endif
                             @else
-                                <span class="badge status-badge badge-cancelled">
-                                    belum upload
-                                </span>
+                                {{-- Logika untuk Manual Transfer --}}
+                                @if($order->paymentReceipt)
+                                    @php
+                                        $receiptStatus = $order->paymentReceipt->validation_status;
+                                        $receiptBadge = match($receiptStatus) {
+                                            'approved', 'accepted' => 'bg-success',
+                                            'rejected'             => 'bg-danger',
+                                            default                => 'bg-info text-dark', // pending
+                                        };
+                                    @endphp
+                                    <span class="badge {{ $receiptBadge }} px-2 py-2">
+                                        {{ ucfirst($receiptStatus) }}
+                                    </span>
+                                @else
+                                    <span class="badge bg-secondary px-2 py-2">Belum Upload</span>
+                                @endif
                             @endif
                         </td>
                         <td>
                             <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-outline-primary btn-sm">
-                                Detail
+                                <i class="bi bi-search me-1"></i> Detail
                             </a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted">Belum ada order.</td>
+                        <td colspan="8" class="text-center text-muted py-4">Belum ada order.</td>
                     </tr>
                 @endforelse
             </tbody>
