@@ -119,16 +119,40 @@
     @include('partials.store-footer')
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {{-- PERUBAHAN SWEETALERT ADA DI SINI --}}
     @if(session('success'))
     <script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Berhasil!',
-        text: '{{ session('success') }}',
-         confirmButtonText: 'OK'
-    });
+        @if(session('swal_type') == 'cart_added')
+            // Popup khusus untuk tambah keranjang (2 Tombol)
+            Swal.fire({
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonColor: '#013780', // Warna biru Polman
+                cancelButtonColor: '#6c757d',  // Warna abu-abu
+                confirmButtonText: 'Cek Keranjang',
+                cancelButtonText: 'Lanjut Belanja',
+                reverseButtons: true // Membalik posisi tombol agar 'Ke Keranjang' di kanan
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "{{ route('cart.index') }}";
+                }
+            });
+        @else
+            // Popup sukses biasa (1 Tombol OK)
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#013780'
+            });
+        @endif
     </script>
     @endif
+    
     @stack('scripts')
 </body>
 </html>

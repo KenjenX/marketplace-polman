@@ -16,12 +16,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
 {
     $this->call([
-        CategoriesTableSeeder::class,
-        ProductsTableSeeder::class,
-        ProductVariantsTableSeeder::class,
-    ]);
+            UsersTableSeeder::class,           // Memanggil data user
+            PaymentMethodsTableSeeder::class,  // Memanggil data metode pembayaran
+            CategoriesTableSeeder::class,
+            ProductsTableSeeder::class,
+            ProductVariantsTableSeeder::class,
+        ]);
     $this->call(CategoriesTableSeeder::class);
         $this->call(ProductsTableSeeder::class);
         $this->call(ProductVariantsTableSeeder::class);
+        $this->call(UsersTableSeeder::class);
+        $this->call(PaymentMethodsTableSeeder::class);
     }
 }

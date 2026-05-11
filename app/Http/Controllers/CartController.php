@@ -69,26 +69,27 @@ class CartController extends Controller
         ]);
     }
 
-    public function update(Request $request, CartItem $item)
-    {
-        if ($item->cart->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        $request->validate([
-            'quantity' => 'required|integer|min:1',
-        ]);
-
-        if ($request->quantity > $item->variant->stock) {
-            return back()->with('error', 'Jumlah melebihi stok yang tersedia.');
-        }
-
-        $item->update([
-            'quantity' => $request->quantity,
-        ]);
-
-        return redirect()->route('cart.index')->with('success', 'Jumlah produk berhasil diupdate.');
+   public function update(Request $request, CartItem $item)
+{
+    if ($item->cart->user_id !== auth()->id()) {
+        abort(403);
     }
+
+    $request->validate([
+        'quantity' => 'required|integer|min:1',
+    ]);
+
+    if ($request->quantity > $item->variant->stock) {
+        return back()->with('error', 'Jumlah melebihi stok yang tersedia.');
+    }
+
+    $item->update([
+        'quantity' => $request->quantity,
+    ]);
+
+    // Berhasil update langsung balik tanpa munculin pop-up success yang ganggu
+    return redirect()->route('cart.index');
+}
 
     public function destroy(CartItem $item)
     {

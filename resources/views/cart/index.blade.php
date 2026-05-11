@@ -36,8 +36,9 @@
 
                                 <a href="{{ route('products.show', $item->variant->product->slug) }}" class="text-decoration-none">
                                     <div class="rounded-3 border overflow-hidden me-3 img-hover-effect" style="width: 90px; height: 90px; flex-shrink: 0;">
-                                        <img src="{{ $item->variant->product->image ? asset('storage/' . $item->variant->product->image) : asset('assets/img/no-image.png') }}" 
-                                             class="w-100 h-100 object-fit-cover" alt="Produk">
+                                        {{-- LOGIKA GAMBAR VARIASI: Cek gambar variasi dulu, baru gambar produk --}}
+                                        <img src="{{ $item->variant->image ? asset('storage/' . $item->variant->image) : ($item->variant->product->image ? asset('storage/' . $item->variant->product->image) : asset('assets/img/no-image.png')) }}" 
+                                             class="w-100 h-100 object-fit-cover" alt="{{ $item->variant->name }}">
                                     </div>
                                 </a>
 
@@ -46,8 +47,8 @@
                                         <h6 class="fw-bold mb-1 hover-primary">{{ $item->variant->product->name }}</h6>
                                     </a>
                                     <div class="mb-2">
-                                        <span class="badge bg-light text-secondary border fw-normal" style="font-size: 0.75rem;">
-                                            Variasi: {{ $item->variant->name }}
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-medium" style="font-size: 0.75rem;">
+                                            Pilihan: {{ $item->variant->name }}
                                         </span>
                                     </div>
                                     <p class="fw-bold text-primary mb-0">Rp {{ number_format($item->variant->price, 0, ',', '.') }}</p>
@@ -73,7 +74,7 @@
                             </div>
                         </div>
                     </div>
-                @empty {{-- Bagian ini muncul kalau keranjang kosong --}}
+                @empty
                     <div class="card border-0 shadow-sm rounded-4 py-5 text-center">
                         <div class="card-body">
                             <i class="bi bi-cart-x display-1 text-muted mb-3"></i>
@@ -201,7 +202,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        {{-- Logika diperbaiki untuk memicu notifikasi hapus saat qty mencapai 1 --}}
         btnMinus.addEventListener('click', () => {
             let currentVal = parseInt(qtyInput.value);
             if (currentVal > 1) {

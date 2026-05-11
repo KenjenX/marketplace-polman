@@ -35,11 +35,6 @@
 
 <div class="container py-5 checkout-page">
     <div class="row g-4">
-<<<<<<< HEAD
-        <!-- KOLOM KIRI: FORM PENGIRIMAN -->
-        <div class="col-lg-8">
-            <div class="bg-white rounded-5 shadow-sm p-4 p-md-5">
-=======
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <h4 class="fw-bold mb-4">Informasi Pengiriman</h4>
@@ -54,7 +49,6 @@
                     </div>
                 @endif
 
->>>>>>> c12d238a0e03d357b80b0cf4ca1c0f27b8d1ad73
                 <form action="{{ route('checkout.store') }}" method="POST">
                     @csrf
                     
@@ -64,137 +58,48 @@
                             <label class="label-custom">Nama Penerima</label>
                             <input type="text" name="recipient_name" 
                                    value="{{ old('recipient_name', auth()->user()->default_recipient_name ?: auth()->user()->display_name) }}"
-<<<<<<< HEAD
                                    class="form-control form-control-custom" placeholder="Nama Lengkap">
-=======
-                                   class="form-control bg-light border-0 py-2 shadow-none" required>
->>>>>>> c12d238a0e03d357b80b0cf4ca1c0f27b8d1ad73
                         </div>
                         <div class="col-md-6">
                             <label class="label-custom">No. HP (WhatsApp)</label>
                             <input type="text" name="phone" 
                                    value="{{ old('phone', auth()->user()->phone) }}"
-<<<<<<< HEAD
-                                   class="form-control form-control-custom" placeholder="08xxx">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="label-custom">Provinsi</label>
-                            <input type="text" name="province" 
-                                   value="{{ old('province', auth()->user()->default_province) }}"
-                                   class="form-control form-control-custom">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="label-custom">Kota / Kabupaten</label>
-                            <input type="text" name="city" 
-                                   value="{{ old('city', auth()->user()->default_city) }}"
-                                   class="form-control form-control-custom">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="label-custom">Kecamatan</label>
-                            <input type="text" name="district" 
-                                   value="{{ old('district', auth()->user()->default_district) }}"
-                                   class="form-control form-control-custom">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="label-custom">Kode Pos</label>
-                            <input type="text" name="postal_code" 
-                                   value="{{ old('postal_code', auth()->user()->default_postal_code) }}"
-                                   class="form-control form-control-custom">
-=======
                                    class="form-control bg-light border-0 py-2 shadow-none" required>
                         </div>
 
                         {{-- PROVINSI --}}
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">
-                                Provinsi
-                            </label>
-
-                            <input
-                                type="text"
-                                class="form-control bg-light border-0 py-2 shadow-none"
-                                value="{{ $userAddress->province ?? auth()->user()->default_province }}"
-                                readonly
-                            >
-
-                            <input
-                                type="hidden"
-                                name="province"
-                                value="{{ $userAddress->province ?? auth()->user()->default_province }}"
-                            >
+                            <label class="form-label fw-semibold">Provinsi</label>
+                            <input type="text" class="form-control bg-light border-0 py-2 shadow-none"
+                                   value="{{ $userAddress->province ?? auth()->user()->default_province }}" readonly>
+                            <input type="hidden" name="province" value="{{ $userAddress->province ?? auth()->user()->default_province }}">
                         </div>
 
                         {{-- KOTA / KABUPATEN --}}
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">
-                                Kota / Kabupaten
-                            </label>
-
-                            <input
-                                type="text"
-                                class="form-control bg-light border-0 py-2 shadow-none"
-                                value="{{ $userAddress->city ?? auth()->user()->default_city }}"
-                                readonly
-                            >
-
-                            <input
-                                type="hidden"
-                                name="city_id"
-                                value="55"
-                            >
-
-                            <input
-                                type="hidden"
-                                name="city"
-                                value="{{ $userAddress->city ?? auth()->user()->default_city }}"
-                            >
+                            <label class="form-label fw-semibold">Kota / Kabupaten</label>
+                            <input type="text" class="form-control bg-light border-0 py-2 shadow-none"
+                                   value="{{ $userAddress->city ?? auth()->user()->default_city }}" readonly>
+                            <input type="hidden" name="city_id" value="55">
+                            <input type="hidden" name="city" value="{{ $userAddress->city ?? auth()->user()->default_city }}">
                         </div>
 
                         {{-- KECAMATAN --}}
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">
-                                Kecamatan
-                            </label>
-
-                            <input
-                                type="text"
-                                class="form-control bg-light border-0 py-2 shadow-none"
-                                value="{{ $userAddress->district ?? auth()->user()->default_district }}"
-                                readonly
-                            >
-
-                            <input
-                                type="hidden"
-                                name="district"
-                                value="{{ $userAddress->district ?? auth()->user()->default_district }}"
-                            >
->>>>>>> c12d238a0e03d357b80b0cf4ca1c0f27b8d1ad73
+                            <label class="form-label fw-semibold">Kecamatan</label>
+                            <input type="text" class="form-control bg-light border-0 py-2 shadow-none"
+                                   value="{{ $userAddress->district ?? auth()->user()->default_district }}" readonly>
+                            <input type="hidden" name="district" value="{{ $userAddress->district ?? auth()->user()->default_district }}">
                         </div>
+
                         <div class="col-12">
-<<<<<<< HEAD
                             <label class="label-custom">Alamat Lengkap</label>
                             <textarea name="full_address" class="form-control form-control-custom" rows="3" placeholder="Nama Jalan, No. Rumah, Patokan">{{ old('full_address', auth()->user()->default_full_address) }}</textarea>
-=======
-                            <label class="form-label fw-semibold">Alamat Lengkap</label>
-                            <textarea name="full_address"
-                                      class="form-control bg-light border-0 shadow-none" rows="3" required>{{ old('full_address', auth()->user()->default_full_address) }}</textarea>
->>>>>>> c12d238a0e03d357b80b0cf4ca1c0f27b8d1ad73
                         </div>
                     </div>
 
                     <div class="border-top my-5"></div>
 
-<<<<<<< HEAD
-                    <h4 class="section-title">Opsi Pengiriman & Pembayaran</h4>
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <label class="label-custom">Pilih Jasa Kurir</label>
-                            <select name="shipping_method" class="form-select form-control-custom" id="shippingMethod">
-                                <option value="">-- Pilih Kurir --</option>
-                                <option value="jne_reg">JNE REG - Rp 10.000</option>
-                                <option value="jne_yes">JNE YES - Rp 20.000</option>
-                                <option value="jnt">J&T - Rp 12.000</option>
-=======
                     <h4 class="fw-bold mb-4">Opsi Pengiriman</h4>
                     <div class="mb-4">
                         <label class="form-label fw-semibold">Pilih Kurir</label>
@@ -210,6 +115,8 @@
                     <hr class="my-4 opacity-25">
 
                     <h4 class="fw-bold mb-4">Pembayaran</h4>
+                    
+                    {{-- BLOK PEMBAYARAN YANG SUDAH DIRAPIKAN --}}
                     @if($paymentMethods->count() > 0)
                         <div class="mb-4">
                             <label class="form-label fw-semibold">Pilih Metode Pembayaran</label>
@@ -220,29 +127,16 @@
                                         {{ $paymentMethod->name }}
                                     </option>
                                 @endforeach
->>>>>>> c12d238a0e03d357b80b0cf4ca1c0f27b8d1ad73
                             </select>
                             <small class="text-muted mt-2 d-block" style="font-size: 10px;">*Ongkir akan otomatis ditambahkan ke total bayar.</small>
                         </div>
-                        <div class="col-md-6">
-                            <label class="label-custom">Metode Pembayaran</label>
-                            @if($paymentMethods->count() > 0)
-                                <select name="payment_method_id" class="form-select form-control-custom">
-                                    <option value="">-- Pilih Metode --</option>
-                                    @foreach($paymentMethods as $paymentMethod)
-                                        <option value="{{ $paymentMethod->id }}" {{ old('payment_method_id') == $paymentMethod->id ? 'selected' : '' }}>
-                                            {{ $paymentMethod->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            @else
-                                <div class="alert alert-warning py-2 small border-0 rounded-3 mb-0">Metode pembayaran belum tersedia.</div>
-                            @endif
-                        </div>
-                        <div class="col-12">
-                            <label class="label-custom">Catatan Pesanan (Opsional)</label>
-                            <textarea name="notes" class="form-control form-control-custom" rows="2" placeholder="Contoh: Titip di satpam atau warna cadangan">{{ old('notes') }}</textarea>
-                        </div>
+                    @else
+                        <div class="alert alert-warning py-2 small border-0 rounded-3 mb-4">Metode pembayaran belum tersedia.</div>
+                    @endif
+
+                    <div class="mb-4">
+                        <label class="label-custom">Catatan Pesanan (Opsional)</label>
+                        <textarea name="notes" class="form-control form-control-custom" rows="2" placeholder="Contoh: Titip di satpam atau warna cadangan">{{ old('notes') }}</textarea>
                     </div>
 
                     <div class="d-flex align-items-center gap-3 mt-5">
@@ -255,8 +149,6 @@
             </div>
         </div>
 
-<<<<<<< HEAD
-        <!-- KOLOM KANAN: RINGKASAN PESANAN -->
         <div class="col-lg-4">
             <div class="summary-card rounded-5 shadow-sm p-4">
                 <h5 class="section-title mb-4" style="font-size: 18px;">Ringkasan Pesanan</h5>
@@ -279,29 +171,6 @@
                         </div>
                     @endforeach
                 </div>
-=======
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 100px; z-index: 10;">
-                <h5 class="fw-bold mb-4">Ringkasan Pesanan</h5>
-
-                @php $grandTotal = 0; @endphp
-                @foreach($cart->items as $item)
-                    @php
-                        $subtotalItem = $item->variant->price * $item->quantity;
-                        $grandTotal += $subtotalItem;
-                    @endphp
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="rounded-3 bg-light p-1 me-3 shadow-sm" style="width: 65px; height: 65px; flex-shrink: 0;">
-                            <img src="{{ $item->variant->product->image ? asset('storage/' . $item->variant->product->image) : asset('assets/img/no-image.png') }}" class="w-100 h-100 object-fit-cover rounded-2">
-                        </div>
-                        <div class="flex-grow-1 overflow-hidden">
-                            <h6 class="mb-0 fw-bold small text-truncate">{{ $item->variant->product->name }}</h6>
-                            <small class="text-muted d-block">{{ $item->variant->name }} (x{{ $item->quantity }})</small>
-                            <span class="fw-bold small text-primary">Rp {{ number_format($subtotalItem, 0, ',', '.') }}</span>
-                        </div>
-                    </div>
-                @endforeach
->>>>>>> c12d238a0e03d357b80b0cf4ca1c0f27b8d1ad73
 
                 <div class="border-top my-4"></div>
                 
@@ -310,17 +179,6 @@
                     <span class="value-text">Rp {{ number_format($grandTotal, 0, ',', '.') }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-4">
-<<<<<<< HEAD
-                    <span class="text-muted small fw-bold">ONGKOS KIRIM</span>
-                    <span class="value-text" id="shippingCostDisplay">Rp 0</span>
-                </div>
-                
-                <div class="d-flex justify-content-between align-items-center border-top pt-3">
-                    <span class="fw-bold small">TOTAL BAYAR</span>
-                    <h4 class="fw-bold text-primary mb-0" id="totalPaymentDisplay" style="letter-spacing: -1px;">
-                        Rp {{ number_format($grandTotal, 0, ',', '.') }}
-                    </h4>
-=======
                     <span class="text-muted">Ongkos Kirim</span>
                     <span class="fw-bold text-info italic" style="font-size: 0.85rem;">Dihitung saat proses...</span>
                 </div>
@@ -328,7 +186,6 @@
                 <div class="d-flex justify-content-between align-items-center border-top pt-3">
                     <h5 class="fw-bold mb-0">Total Harga Barang</h5>
                     <h4 class="fw-bold text-primary mb-0">Rp {{ number_format($grandTotal, 0, ',', '.') }}</h4>
->>>>>>> c12d238a0e03d357b80b0cf4ca1c0f27b8d1ad73
                 </div>
                 <p class="text-muted small mt-2">*Belum termasuk biaya pengiriman.</p>
             </div>
@@ -336,19 +193,9 @@
     </div>
 </div>
 
-<<<<<<< HEAD
 <script>
     // Pastikan navbar tetap di atas ringkasan pesanan
     const navbar = document.querySelector('.navbar');
     if(navbar) navbar.style.zIndex = "1050";
 </script>
-=======
-<style>
-    .navbar { z-index: 1050 !important; }
-    .form-control:focus, .form-select:focus {
-        background-color: #f1f3f5 !important;
-        border: 1px solid #dee2e6 !important;
-    }
-</style>
->>>>>>> c12d238a0e03d357b80b0cf4ca1c0f27b8d1ad73
 @endsection

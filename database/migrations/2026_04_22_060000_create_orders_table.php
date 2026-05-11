@@ -10,6 +10,12 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            
+            // --- DUA KOLOM INI YANG DITAMBAHKAN ---
+            $table->uuid('uuid')->unique(); 
+            $table->foreignId('payment_method_id')->nullable()->constrained('payment_methods')->nullOnDelete();
+            // -------------------------------------
+
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('address_id')->constrained()->cascadeOnDelete();
             $table->string('order_code')->unique();
