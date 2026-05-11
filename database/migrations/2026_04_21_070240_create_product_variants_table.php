@@ -10,12 +10,13 @@ return new class extends Migration
     {
         Schema::create('product_variants', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->text('specification')->nullable();
-            $table->decimal('price', 12, 2)->default(0);
-            $table->integer('stock')->default(0);
+            $table->text('specification')->nullable(); // Sudah ada
+            $table->decimal('price', 12, 2);
+            $table->integer('stock');
             $table->string('status')->default('active');
+            $table->string('image')->nullable(); // Pastikan ada ini
             $table->timestamps();
         });
     }

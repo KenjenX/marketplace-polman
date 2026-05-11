@@ -31,9 +31,8 @@ class PaymentMethodController extends Controller
             'is_active' => 'required|boolean',
         ]);
 
-        if ((bool) $request->is_active === true) {
-            PaymentMethod::query()->update(['is_active' => false]);
-        }
+        // PERBAIKAN: Baris logika yang mematikan metode lain dihapus 
+        // agar bisa memiliki lebih dari satu metode aktif.
 
         PaymentMethod::create([
             'name' => $request->name,
@@ -71,9 +70,8 @@ class PaymentMethodController extends Controller
             'is_active' => 'required|boolean',
         ]);
 
-        if ((bool) $request->is_active === true) {
-            PaymentMethod::where('id', '!=', $paymentMethod->id)->update(['is_active' => false]);
-        }
+        // PERBAIKAN: Baris "PaymentMethod::where('id', '!=', ...)->update(['is_active' => false]);" 
+        // dihapus agar saat update status, tidak mematikan metode pembayaran lainnya.
 
         $paymentMethod->update([
             'name' => $request->name,

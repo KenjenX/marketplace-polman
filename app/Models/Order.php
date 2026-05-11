@@ -5,12 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use App\Models\PaymentReceipt;
+use App\Notifications\OrderNotification;
 
 class Order extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'uuid',
         'user_id',
         'address_id',
         'payment_method_id',
@@ -22,19 +26,54 @@ class Order extends Model
         'payment_account_number',
         'payment_account_name',
         'payment_instruction',
+        'shipping_method',
+        'courier_name',
+        'shipping_cost',
         'status',
         'payment_deadline_at',
         'notes',
+        'tracking_number',
+        'courier_code',
+        'payment_url',
     ];
+
+    protected $hidden = ['id'];
 
     protected $casts = [
         'payment_deadline_at' => 'datetime',
     ];
 
-    public function paymentMethod()
+    /*
+    |--------------------------------------------------------------------------
+    | AUTO UUID
+    |--------------------------------------------------------------------------
+    */
+
+    protected static function booted()
     {
-        return $this->belongsTo(PaymentMethod::class);
+        static::creating(function ($order) {
+            if (empty($order->uuid)) {
+                $order->uuid = (string) Str::uuid();
+            }
+        });
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ROUTE MODEL BINDING
+    |--------------------------------------------------------------------------
+    */
+
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONSHIPS
+    |--------------------------------------------------------------------------
+    */
 
     public function user()
     {
@@ -56,56 +95,51 @@ class Order extends Model
         return $this->hasOne(PaymentReceipt::class);
     }
 
-    public function isWaitingPaymentLike(): bool
-    {
-        return in_array($this->status, ['waiting_payment', 'payment_rejected']);
-    }
-
-    public function isPaymentExpired(): bool
-    {
-        return $this->payment_deadline_at
-            && now()->greaterThan($this->payment_deadline_at)
-            && $this->isWaitingPaymentLike();
-    }
-
-    public function restoreReservedStock(): void
-    {
-        $this->loadMissing('items.variant');
-
-        foreach ($this->items as $item) {
-            if ($item->variant) {
-                $item->variant->increment('stock', $item->quantity);
-            }
-        }
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | LOGIC METHODS
+    |--------------------------------------------------------------------------
+    */
 
     public function expireIfNeeded(): bool
     {
         $expired = false;
 
         DB::transaction(function () use (&$expired) {
-            $order = self::query()->lockForUpdate()->find($this->id);
 
-            if (!$order) {
-                return;
-            }
+            $order = self::query()
+                ->where('id', $this->id)
+                ->lockForUpdate()
+                ->first();
 
             if (
-                !$order->payment_deadline_at ||
-                !now()->greaterThan($order->payment_deadline_at) ||
-                !in_array($order->status, ['waiting_payment', 'payment_rejected'])
+                $order &&
+                $order->payment_deadline_at &&
+                now()->greaterThan($order->payment_deadline_at) &&
+                in_array($order->status, [
+                    'waiting_payment',
+                    'payment_rejected'
+                ])
             ) {
-                return;
+
+                $order->restoreReservedStock();
+
+                $order->update([
+                    'status' => 'expired'
+                ]);
+
+                // kirim notifikasi ke user
+                $order->user->notify(new OrderNotification([
+                    'title' => 'Pesanan Kadaluarsa',
+                    'message' => "Pesanan #{$order->order_code} telah kadaluarsa karena melewati batas waktu pembayaran. Silakan buat pesanan baru jika Anda masih berminat dengan produk kami.",
+                    'order_uuid' => $order->uuid,
+                    'icon' => 'bi-x-circle',
+                    'type' => 'danger',
+                    'url' => route('orders.show', $order->uuid),
+                ]));
+
+                $expired = true;
             }
-
-            $order->load('items.variant');
-            $order->restoreReservedStock();
-
-            $order->update([
-                'status' => 'expired',
-            ]);
-
-            $expired = true;
         });
 
         if ($expired) {
@@ -113,5 +147,21 @@ class Order extends Model
         }
 
         return $expired;
+    }
+
+    public function restoreReservedStock(): void
+    {
+        $this->loadMissing('items.productVariant');
+
+        foreach ($this->items as $item) {
+
+            if ($item->productVariant) {
+
+                $item->productVariant->increment(
+                    'stock',
+                    $item->quantity
+                );
+            }
+        }
     }
 }

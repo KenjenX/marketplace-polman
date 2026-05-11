@@ -13,9 +13,17 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('recipient_name');
             $table->string('phone');
+            
+            // Urutan wilayah
             $table->string('province');
-            $table->string('city');
+            $table->string('province_id')->nullable();
+            
+            $table->string('city'); // Tambahkan ini karena sebelumnya belum ada
+            $table->string('city_id')->nullable();
+            
             $table->string('district');
+            $table->string('district_id')->nullable();
+            
             $table->string('postal_code')->nullable();
             $table->text('full_address');
             $table->timestamps();

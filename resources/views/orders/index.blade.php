@@ -48,6 +48,7 @@
     .badge-completed { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
     .badge-rejected, .badge-cancelled, .badge-expired { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
 
+<<<<<<< HEAD
     /* Button Styling */
     .btn-detail-polman {
         border-radius: 50px;
@@ -74,6 +75,58 @@
             <div>
                 <h2 class="page-title mb-1">Pesanan Saya</h2>
                 <p class="text-muted mb-0" style="font-size: 13px;">Pantau status pembayaran dan penyelesaian order kamu secara real-time.</p>
+=======
+                <div class="col-lg-2">
+                    <div class="text-muted small">Metode Pembayaran</div>
+                    <div>{{ $order->payment_method }}</div>
+                </div>
+
+                <div class="col-lg-2">
+                    <div class="text-muted small">Status</div>
+                    <div>
+                        @php
+                            $statusClass = match($order->status) {
+                                'waiting_payment' => 'badge-waiting-payment',
+                                'waiting_receipt_validation' => 'badge-waiting-validation',
+                                'payment_rejected' => 'badge-rejected',
+                                'processing' => 'badge-processing',
+                                'shipped' => 'badge-processing',
+                                'completed' => 'badge-completed',
+                                'cancelled' => 'badge-cancelled',
+                                'expired' => 'badge-expired',
+                                default => 'text-bg-primary',
+                            };
+                        @endphp
+
+                        <span class="badge status-badge {{ $statusClass }}">
+                            {{ str_replace('_', ' ', $order->status) }}
+                        </span>
+
+                        @if(in_array($order->status, ['waiting_payment', 'payment_rejected']) && $order->payment_deadline_at)
+                            <div class="small text-muted mt-1" style="font-size: 0.7rem;">
+                                Batas: {{ $order->payment_deadline_at->format('d M H:i') }}
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- KOLOM AKSI: Penempatan tombol Lacak Pesanan --}}
+               <div class="col-lg-3 text-lg-end">
+                    <div class="d-flex flex-column flex-lg-row gap-2 justify-content-lg-end">
+                        @if($order->tracking_number)
+                            {{-- PERBAIKAN: Gunakan uuid --}}
+                            <a href="{{ route('orders.track', $order->uuid) }}" class="btn btn-sm btn-info text-white">
+                                <i class="bi bi-truck me-1"></i> Lacak Pesanan
+                            </a>
+                        @endif
+
+                        {{-- PERBAIKAN: Gunakan uuid --}}
+                        <a href="{{ route('orders.show', $order->uuid) }}" class="btn btn-outline-primary btn-sm">
+                            Lihat Detail
+                        </a>
+                    </div>
+                </div>
+>>>>>>> c12d238a0e03d357b80b0cf4ca1c0f27b8d1ad73
             </div>
         </div>
 

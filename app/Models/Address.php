@@ -14,8 +14,11 @@ class Address extends Model
         'recipient_name',
         'phone',
         'province',
+        'province_id',
         'city',
+        'city_id',
         'district',
+        'district_id',
         'postal_code',
         'full_address',
     ];

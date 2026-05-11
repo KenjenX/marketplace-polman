@@ -10,14 +10,14 @@ class ProductVariant extends Model
     use HasFactory;
 
     protected $fillable = [
-        'product_id',
-        'name',
-        'specification',
-        'price',
-        'stock',
-        'status',
-        'image', // <-- SEKARANG SUDAH DITAMBAHKAN, PASTI BISA MASUK!
-    ];
+    'product_id',
+    'name',
+    'specification', // <-- PASTIKAN ADA INI
+    'price',
+    'stock',
+    'status',
+    'image',
+];
 
     public function product()
     {

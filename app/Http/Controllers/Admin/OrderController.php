@@ -6,129 +6,177 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\OrderNotification;
 
 class OrderController extends Controller
 {
+    /**
+     * List Order
+     */
     public function index()
     {
-        $orders = Order::with(['user', 'paymentReceipt'])
+        $orders = Order::with([
+                'user',
+                'paymentReceipt'
+            ])
             ->latest()
-            ->get();
-
-        foreach ($orders as $order) {
-            $order->expireIfNeeded();
-        }
-
-        $orders = Order::with(['user', 'paymentReceipt'])
-            ->latest()
-            ->get();
+            ->paginate(15);
 
         return view('admin.orders.index', compact('orders'));
     }
 
+    /**
+     * Detail Order
+     */
     public function show(Order $order)
     {
-        $order->expireIfNeeded();
-        $order->refresh()->load(['user', 'address', 'items', 'paymentReceipt']);
+        $order->load([
+            'user',
+            'address',
+            'items.productVariant.product',
+            'paymentReceipt',
+        ]);
 
         return view('admin.orders.show', compact('order'));
     }
 
+    /**
+     * Approve / Reject Bukti Pembayaran
+     */
     public function updatePaymentStatus(Request $request, Order $order)
     {
-        $order->expireIfNeeded();
-        $order->refresh();
-
         $request->validate([
             'action' => 'required|in:accept,reject',
-            'admin_note' => 'nullable',
+            'admin_note' => 'nullable|string|max:1000',
         ]);
 
         if (!$order->paymentReceipt) {
-            return back()->with('error', 'Bukti pembayaran belum ada.');
+            return back()->with('error', 'Bukti pembayaran tidak ditemukan.');
         }
 
-        if ($order->status !== 'waiting_receipt_validation') {
-            return back()->with('error', 'Order ini tidak dalam status menunggu validasi.');
-        }
+        DB::transaction(function () use ($request, $order) {
 
-        if ($request->action === 'accept') {
-            $order->paymentReceipt->update([
-                'validation_status' => 'accepted',
-                'admin_note' => $request->admin_note,
-            ]);
+            if ($request->action === 'accept') {
 
-            $order->update([
-                'status' => 'processing',
-            ]);
+                $order->paymentReceipt()->update([
+                    'validation_status' => 'approved',
+                    'admin_note' => $request->admin_note,
+                ]);
 
-            return back()->with('success', 'Pembayaran berhasil diterima.');
-        }
+                $order->update([
+                    'status' => 'processing',
+                ]);
 
-        if ($request->action === 'reject') {
-            $order->paymentReceipt->update([
-                'validation_status' => 'rejected',
-                'admin_note' => $request->admin_note,
-            ]);
+                // Kirim notifikasi ke user
+                $order->user->notify(new OrderNotification([
+                    'title' => 'Pembayaran Diterima',
+                    'message' => "Pembayaran untuk pesanan #{$order->id} telah diterima. Pesanan Anda sedang diproses.",
+                    'order_uuid' => $order->uuid,
+                    'icon' => 'bi-check-circle',
+                    'type' => 'success',
+                    'url' => route('orders.show', $order->uuid),
+                ]));
 
-            $order->update([
-                'status' => 'payment_rejected',
-            ]);
+            } else {
 
-            return back()->with('success', 'Pembayaran berhasil ditolak.');
-        }
+                $order->paymentReceipt()->update([
+                    'validation_status' => 'rejected',
+                    'admin_note' => $request->admin_note,
+                ]);
 
-        return back()->with('error', 'Aksi tidak valid.');
+                $order->update([
+                    'status' => 'payment_rejected',
+                ]);
+
+                // Kirim notifikasi ke user
+                $order->user->notify(new OrderNotification([
+                    'title' => 'Pembayaran Ditolak',
+                    'message' => "Pembayaran untuk pesanan #{$order->id} ditolak. Silakan periksa kembali bukti pembayaran Anda atau hubungi layanan pelanggan.",
+                    'order_uuid' => $order->uuid,
+                    'icon' => 'bi-x-circle',
+                    'type' => 'danger',
+                    'url' => route('orders.show', $order->uuid),
+                ]));
+            }
+        });
+
+        return back()->with(
+            'success',
+            $request->action === 'accept'
+                ? 'Pembayaran berhasil diterima.'
+                : 'Pembayaran berhasil ditolak.'
+        );
     }
 
-    public function updateOrderStatus(Request $request, Order $order)
+    /**
+     * Update Status Order
+     */
+    public function updateStatus(Request $request, Order $order)
     {
-        $order->expireIfNeeded();
-        $order->refresh();
-
         $request->validate([
-            'status' => 'required|in:completed,cancelled',
+            'status' => 'required|in:processing,shipped,completed,cancelled'
         ]);
 
-        if ($request->status === 'completed') {
-            if ($order->status !== 'processing') {
-                return back()->with('error', 'Order hanya bisa diselesaikan jika statusnya processing.');
+        DB::transaction(function () use ($request, $order) {
+
+            // Jika order dibatalkan -> restore stok
+            if ($request->status === 'cancelled') {
+
+                if (!in_array($order->status, ['completed', 'cancelled'])) {
+
+                    $order->restoreReservedStock();
+                }
             }
 
             $order->update([
-                'status' => 'completed',
+                'status' => $request->status
             ]);
+        });
 
-            return back()->with('success', 'Order berhasil diselesaikan.');
-        }
+        return back()->with(
+            'success',
+            'Status order berhasil diperbarui menjadi '
+            . str_replace('_', ' ', $request->status)
+        );
+    }
 
-        if ($request->status === 'cancelled') {
-            if (!in_array($order->status, ['waiting_payment', 'payment_rejected', 'waiting_receipt_validation', 'processing'])) {
-                return back()->with('error', 'Order ini tidak bisa dibatalkan.');
-            }
+    /**
+     * Update Resi & Kirim Barang
+     */
+    public function updateTracking(Request $request, Order $order)
+    {
+        $request->validate([
+            'courier_code' => 'required|string|max:50',
+            'tracking_number' => 'required|string|max:255',
+        ]);
 
-            DB::transaction(function () use ($order) {
-                $lockedOrder = Order::query()->lockForUpdate()->find($order->id);
+        $courierName = match(strtolower($request->courier_code)) {
+            'jne' => 'JNE',
+            'jnt' => 'J&T Express',
+            'pos' => 'POS Indonesia',
+            default => strtoupper($request->courier_code),
+        };
 
-                if (!$lockedOrder) {
-                    return;
-                }
+        $order->update([
+            'courier_code' => strtolower($request->courier_code),
+            'courier_name' => $courierName,
+            'tracking_number' => $request->tracking_number,
+            'status' => 'shipped',
+        ]);
 
-                if (!in_array($lockedOrder->status, ['waiting_payment', 'payment_rejected', 'waiting_receipt_validation', 'processing'])) {
-                    return;
-                }
+        // Kirim notifikasi ke user
+        $order->user->notify(new OrderNotification([
+            'title' => 'Pesanan Dikirim',
+            'message' => "Pesanan #{$order->order_code} telah dikirim dengan nomor resi {$request->tracking_number}.",
+            'order_uuid' => $order->uuid,
+            'icon' => 'bi-truck',
+            'type' => 'info',
+            'url' => route('orders.show', $order->uuid),
+        ]));
 
-                $lockedOrder->load('items.variant');
-                $lockedOrder->restoreReservedStock();
-
-                $lockedOrder->update([
-                    'status' => 'cancelled',
-                ]);
-            });
-
-            return back()->with('success', 'Order berhasil dibatalkan dan stok telah dikembalikan.');
-        }
-
-        return back()->with('error', 'Status tidak valid.');
+        return back()->with(
+            'success',
+            'Nomor resi berhasil disimpan dan pesanan dikirim.'
+        );
     }
 }

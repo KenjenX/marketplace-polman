@@ -39,4 +39,15 @@ return [
        'secret_key' => env('XENDIT_SECRET_KEY'),
        'webhook_token' => env('XENDIT_WEBHOOK_VERIFICATION_TOKEN'),
     ],
+
+    'rajaongkir' => [
+       'key' => env('RAJAONGKIR_API_KEY'),
+       'url' => env('RAJAONGKIR_BASE_URL'),
+     ],
+    
+    'binderbyte' => [
+       'endpoint' => env('BINDERBYTE_ENDPOINT'),
+       'key' => env('BINDERBYTE_API_KEY'),
+       'url' => 'https://api.binderbyte.com/v1',
+    ],
 ];

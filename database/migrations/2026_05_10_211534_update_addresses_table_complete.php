@@ -8,15 +8,20 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->timestamp('payment_deadline_at')->nullable()->after('status');
+        Schema::table('addresses', function (Blueprint $table) {
+
         });
     }
 
     public function down(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->dropColumn('payment_deadline_at');
+        Schema::table('addresses', function (Blueprint $table) {
+
+            $table->dropColumn([
+                'province_id',
+                'city_id',
+                'district_id'
+            ]);
         });
     }
 };
