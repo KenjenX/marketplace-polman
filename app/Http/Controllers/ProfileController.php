@@ -16,7 +16,7 @@ class ProfileController extends Controller
         return view('profile.edit', [
             'user' => Auth::user()
         ]);
-   }
+    }
 
     public function update(Request $request): RedirectResponse
     {
@@ -93,8 +93,14 @@ class ProfileController extends Controller
 
         // Provinsi, Kota, dan Kecamatan disimpan baik nama maupun ID-nya untuk memudahkan integrasi dengan layanan pengiriman
         $user->default_province_id = $validated['default_province_id'] ?? null;
+        $user->default_province = $validated['default_province'] ?? null;
+        
         $user->default_city_id = $validated['default_city_id'] ?? null;
+        $user->default_city = $validated['default_city'] ?? null;
+        
         $user->default_district_id = $validated['default_district_id'] ?? null;
+        $user->default_district = $validated['default_district'] ?? null;
+        
         $user->default_postal_code = $validated['default_postal_code'] ?? null;
         $user->default_full_address = $validated['default_full_address'] ?? null;
 
@@ -110,27 +116,26 @@ class ProfileController extends Controller
 
     public function updateAddress(Request $request)
     {
-    $request->validate([
-        'default_recipient_name' => ['required', 'string', 'max:255'],
-        'default_province_id' => ['required', 'string', 'max:255'],
-        'default_city_id' => ['required', 'string', 'max:255'],
-        'default_district_id' => ['required', 'string', 'max:255'],
-        'default_postal_code' => ['nullable', 'string', 'max:20'],
-        'default_full_address' => ['required', 'string'],
-    ]);
+        // PERBAIKAN: recipient_name wajib isi, yang lain nullable agar tidak diam-diam error
+        $validated = $request->validate([
+            'default_recipient_name' => ['required', 'string', 'max:255'],
+            'default_province_id'    => ['nullable', 'string', 'max:255'],
+            'default_province'       => ['nullable', 'string', 'max:255'],
+            'default_city_id'        => ['nullable', 'string', 'max:255'],
+            'default_city'           => ['nullable', 'string', 'max:255'],
+            'default_district_id'    => ['nullable', 'string', 'max:255'],
+            'default_district'       => ['nullable', 'string', 'max:255'],
+            'default_postal_code'    => ['nullable', 'string', 'max:20'],
+            'default_full_address'   => ['nullable', 'string'],
+        ]);
 
-    $user = auth()->user();
+        $user = auth()->user();
 
-    $user->update([
-        'default_recipient_name' => $request->default_recipient_name,
-        'default_province_id' => $request->default_province_id,
-        'default_city_id' => $request->default_city_id,
-        'default_district_id' => $request->default_district_id,
-        'default_postal_code' => $request->default_postal_code,
-        'default_full_address' => $request->default_full_address,
-    ]);
+        // Jauh lebih bersih dan rapi
+        $user->update($validated);
 
-    return back()->with('success', 'Alamat berhasil diperbarui');
+        // PERBAIKAN: Gunakan status-alamat agar trigger popup di blade
+        return back()->with('status-alamat', 'alamat-updated');
     }
 
     public function destroy(Request $request): RedirectResponse

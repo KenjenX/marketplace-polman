@@ -91,13 +91,10 @@ Route::middleware('auth')->group(function () {
     })->name('notifications.markAllRead');
 
     // Region API
-    Route::middleware('auth')->group(function () {
-
-        Route::get('/regions/provinces', [RegionController::class, 'provinces']);
-
-        Route::get('/regions/cities/{provinceId}', [RegionController::class, 'cities']);
-
-        Route::get('/regions/districts/{cityId}', [RegionController::class, 'districts']);
+        Route::prefix('regions')->group(function () {
+        Route::get('/provinces', [RegionController::class, 'provinces']);
+        Route::get('/cities/{provinceId}', [RegionController::class, 'cities']);
+        Route::get('/districts/{cityId}', [RegionController::class, 'districts']);
     });
 });
 

@@ -90,7 +90,7 @@
                             </div>
                         </div>
 
-                       {{-- Tab 2: Alamat Default --}}
+                        {{-- Tab 2: Alamat Default --}}
                         <div class="tab-pane fade" id="alamat-default">
                             <div class="card border-0 shadow-sm rounded-0 p-4 p-md-5">
                                 <h4 class="fw-bold mb-4">Alamat Default Checkout</h4>
@@ -99,32 +99,47 @@
                                     @csrf
 
                                     <div class="row g-3">
+                                        {{-- NAMA PENERIMA DEFAULT (Wajib Isi & Auto Fill) --}}
                                         <div class="col-12">
-                                            <label class="form-label small fw-bold text-muted">Nama Penerima Default</label>
+                                            <label class="form-label small fw-bold text-muted">Nama Penerima Default <span class="text-danger">*</span></label>
                                             <input type="text" name="default_recipient_name"
-                                                value="{{ old('default_recipient_name', $user->default_recipient_name) }}"
-                                                class="form-control bg-light border-0 py-2">
+                                                value="{{ old('default_recipient_name', $user->default_recipient_name ?? ($user->account_type === 'company' ? $user->company_name : $user->name)) }}"
+                                                class="form-control bg-light border-0 py-2 @error('default_recipient_name') is-invalid @enderror"
+                                                placeholder="Masukkan nama penerima">
+                                            
+                                            @error('default_recipient_name')
+                                                <div class="text-danger small mt-1">{{ $message }}</div>
+                                            @enderror
                                         </div>
 
+                                        {{-- Provinsi --}}
                                         <div class="col-md-6">
                                             <label class="form-label small fw-bold text-muted">Provinsi</label>
-                                            <input type="text" name="default_province"
-                                                value="{{ old('default_province', $user->default_province) }}"
-                                                class="form-control bg-light border-0 py-2">
+                                            <select id="main_province_select" class="form-select bg-light border-0 py-2 shadow-none">
+                                                <option value="">Pilih Provinsi</option>
+                                            </select>
+                                            <input type="hidden" name="default_province" id="main_db_province_name" value="{{ old('default_province', $user->default_province) }}">
+                                            <input type="hidden" name="default_province_id" id="main_db_province_id" value="{{ old('default_province_id', $user->default_province_id) }}">
                                         </div>
 
+                                        {{-- Kota --}}
                                         <div class="col-md-6">
                                             <label class="form-label small fw-bold text-muted">Kota / Kabupaten</label>
-                                            <input type="text" name="default_city"
-                                                value="{{ old('default_city', $user->default_city) }}"
-                                                class="form-control bg-light border-0 py-2">
+                                            <select id="main_city_select" class="form-select bg-light border-0 py-2 shadow-none">
+                                                <option value="">Pilih Kota</option>
+                                            </select>
+                                            <input type="hidden" name="default_city" id="main_db_city_name" value="{{ old('default_city', $user->default_city) }}">
+                                            <input type="hidden" name="default_city_id" id="main_db_city_id" value="{{ old('default_city_id', $user->default_city_id) }}">
                                         </div>
 
+                                        {{-- Kecamatan --}}
                                         <div class="col-md-6">
                                             <label class="form-label small fw-bold text-muted">Kecamatan</label>
-                                            <input type="text" name="default_district"
-                                                value="{{ old('default_district', $user->default_district) }}"
-                                                class="form-control bg-light border-0 py-2">
+                                            <select id="main_district_select" class="form-select bg-light border-0 py-2 shadow-none">
+                                                <option value="">Pilih Kecamatan</option>
+                                            </select>
+                                            <input type="hidden" name="default_district" id="main_db_district_name" value="{{ old('default_district', $user->default_district) }}">
+                                            <input type="hidden" name="default_district_id" id="main_db_district_id" value="{{ old('default_district_id', $user->default_district_id) }}">
                                         </div>
 
                                         <div class="col-md-6">
@@ -141,7 +156,12 @@
                                         </div>
                                     </div>
 
-                                    <div class="mt-5 text-end">
+                                    <div class="mt-5 d-flex justify-content-end align-items-center">
+                                        @if (session('status-alamat') === 'alamat-updated')
+                                            <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 3000)" class="text-success small fw-bold mb-0 me-4">
+                                                <i class="bi bi-check-circle me-1"></i> Data Alamat Berhasil Disimpan!
+                                            </p>
+                                        @endif
                                         <button type="submit" class="btn btn-primary px-5 fw-bold rounded-0 shadow-sm">
                                             Update Alamat
                                         </button>
@@ -222,12 +242,126 @@
         color: #013780 !important;
         border-left: 4px solid #013780 !important;
     }
-    .form-control:focus {
+    .form-control:focus, .form-select:focus {
         background-color: #f1f3f5 !important;
         border: 1px solid #dee2e6 !important;
     }
-    .btn, .card, .form-control, .modal-content, .list-group-item {
+    .btn, .card, .form-control, .form-select, .modal-content, .list-group-item {
         border-radius: 0 !important;
     }
 </style>
+
+{{-- Pastikan script SweetAlert diambil jika belum ada di layouts.store --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // ----------------------------------------------------
+    // NOTIFIKASI POPUP ERROR & SUKSES (SWEETALERT)
+    // ----------------------------------------------------
+    @if ($errors->any())
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal Menyimpan',
+            text: 'Terdapat kolom yang wajib diisi atau format yang salah. Silakan periksa kembali form Anda.',
+            confirmButtonColor: '#013780',
+        });
+    @endif
+
+    @if (session('status-alamat') === 'alamat-updated' || session('success-profil'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: 'Data Anda telah berhasil diperbarui.',
+            showConfirmButton: false,
+            timer: 2000
+        });
+    @endif
+
+    // ----------------------------------------------------
+    // LOGIKA DROPDOWN WILAYAH ALAMAT
+    // ----------------------------------------------------
+    const provSel = document.getElementById('main_province_select');
+    const citySel = document.getElementById('main_city_select');
+    const distSel = document.getElementById('main_district_select');
+
+    const initialProvName = "{{ $user->default_province }}";
+    const initialCityName = "{{ $user->default_city }}";
+    const initialDistName = "{{ $user->default_district }}";
+
+    // 1. Fetch Provinsi
+    fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json')
+        .then(res => res.json())
+        .then(data => {
+            provSel.innerHTML = '<option value="">Pilih Provinsi</option>';
+            data.forEach(p => {
+                let opt = new Option(p.name, p.id);
+                if(p.name.toUpperCase() === String(initialProvName).toUpperCase()) opt.selected = true;
+                provSel.add(opt);
+            });
+            if(provSel.value) provSel.dispatchEvent(new Event('change'));
+        });
+
+    // 2. Provinsi Berubah -> Fetch Kota
+    provSel.addEventListener('change', function() {
+        const id = this.value;
+        document.getElementById('main_db_province_id').value = id;
+        document.getElementById('main_db_province_name').value = id ? this.options[this.selectedIndex].text : "";
+
+        citySel.innerHTML = '<option value="">Memuat...</option>';
+        distSel.innerHTML = '<option value="">Pilih Kecamatan</option>';
+
+        if(id) {
+            fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${id}.json`)
+                .then(res => res.json())
+                .then(data => {
+                    citySel.innerHTML = '<option value="">Pilih Kota</option>';
+                    data.forEach(c => {
+                        let opt = new Option(c.name, c.id);
+                        if(c.name.toUpperCase() === String(initialCityName).toUpperCase()) opt.selected = true;
+                        citySel.add(opt);
+                    });
+                    if(citySel.value) citySel.dispatchEvent(new Event('change'));
+                });
+        } else {
+            citySel.innerHTML = '<option value="">Pilih Kota</option>';
+            document.getElementById('main_db_city_id').value = "";
+            document.getElementById('main_db_city_name').value = "";
+        }
+    });
+
+    // 3. Kota Berubah -> Fetch Kecamatan
+    citySel.addEventListener('change', function() {
+        const id = this.value;
+        document.getElementById('main_db_city_id').value = id;
+        document.getElementById('main_db_city_name').value = id ? this.options[this.selectedIndex].text : "";
+
+        distSel.innerHTML = '<option value="">Memuat...</option>';
+
+        if(id) {
+            fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${id}.json`)
+                .then(res => res.json())
+                .then(data => {
+                    distSel.innerHTML = '<option value="">Pilih Kecamatan</option>';
+                    data.forEach(d => {
+                        let opt = new Option(d.name, d.id);
+                        if(d.name.toUpperCase() === String(initialDistName).toUpperCase()) opt.selected = true;
+                        distSel.add(opt);
+                    });
+                });
+        } else {
+            distSel.innerHTML = '<option value="">Pilih Kecamatan</option>';
+            document.getElementById('main_db_district_id').value = "";
+            document.getElementById('main_db_district_name').value = "";
+        }
+    });
+
+    // 4. Kecamatan Berubah
+    distSel.addEventListener('change', function() {
+        const id = this.value;
+        document.getElementById('main_db_district_id').value = id;
+        document.getElementById('main_db_district_name').value = id ? this.options[this.selectedIndex].text : "";
+    });
+});
+</script>
 @endsection
