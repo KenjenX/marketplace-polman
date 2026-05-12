@@ -36,7 +36,7 @@ class RegisteredUserController extends Controller
             'phone' => ['required', 'string', 'max:30'],
             'company_name' => ['nullable', 'string', 'max:255', 'required_if:account_type,company'],
             'contact_person' => ['nullable', 'string', 'max:255', 'required_if:account_type,company'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -51,15 +51,27 @@ class RegisteredUserController extends Controller
             'role' => 'user',
             'account_type' => $request->account_type,
             'phone' => $request->phone,
-            'company_name' => $request->account_type === 'company' ? $request->company_name : null,
-            'contact_person' => $request->account_type === 'company' ? $request->contact_person : null,
-            
+            'company_name' => $request->account_type === 'company'
+                ? $request->company_name
+                : null,
+            'contact_person' => $request->account_type === 'company'
+                ? $request->contact_person
+                : null,
         ]);
-        // Kirim email verifikasi setelah pembuatan akun
-        $user->sendEmailVerificationNotification();
 
+        /**
+         * Trigger email verification
+         */
         event(new Registered($user));
 
-        return redirect()->route('verification.notice')->with('success', 'Registrasi berhasil! Silakan verifikasi email Anda.');
+        /**
+         * Login otomatis setelah register
+         */
+        Auth::login($user);
+
+        /**
+         * Redirect ke halaman verifikasi email Laravel
+         */
+        return redirect()->route('verification.notice');
     }
 }

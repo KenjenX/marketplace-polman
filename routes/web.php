@@ -44,17 +44,31 @@ Route::post('/xendit/callback', [XenditCallbackController::class, 'handleInvoice
 
 /*
 |--------------------------------------------------------------------------
+| Confirm Email Page (PUBLIC)
+|--------------------------------------------------------------------------
+
+Route::get('/confirm_email', function (Request $request) {
+
+    return view('auth.confirm-email', [
+        'email' => $request->email
+    ]);
+
+})->name('confirm.email');
+*/
+
+
+/*
+|--------------------------------------------------------------------------
 | Authenticated User Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/dashboard', function () {
-        return redirect()->route('home');
+        return view('dashboard');
     })->name('dashboard');
 
     // Profile
-   // Profile
     Route::controller(ProfileController::class)->group(function () {
         Route::get('/profile/edit', 'edit')
             ->name('profile.edit');

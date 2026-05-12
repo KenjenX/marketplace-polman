@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Providers\RouteServiceProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,11 +25,35 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // proses login
         $request->authenticate();
 
+        // regenerate session
         $request->session()->regenerate();
 
-        return redirect()->intended(route('home', absolute: false));
+        $user = Auth::user();
+
+        /**
+         * CEK EMAIL VERIFIED
+         * Jika belum verifikasi:
+         * - tetap authenticated
+         * - diarahkan ke halaman verify-email Laravel
+         * - dashboard tetap aman karena middleware verified
+         */
+        if (!$user->hasVerifiedEmail()) {
+
+            return redirect()
+                ->route('verification.notice')
+                ->with(
+                    'warning',
+                    'Silakan verifikasi email Anda terlebih dahulu.'
+                );
+        }
+
+        /**
+         * Jika email sudah verified
+         */
+        return redirect()->intended(RouteServiceProvider::HOME);
     }
 
     /**
