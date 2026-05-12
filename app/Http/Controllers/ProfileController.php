@@ -2,141 +2,84 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
+use Illuminate\Support\Facades\Redirect;
 
 class ProfileController extends Controller
 {
-    public function edit()
+    public function edit(Request $request)
     {
         return view('profile.edit', [
-            'user' => Auth::user()
+            'user' => $request->user(),
         ]);
-   }
+    }
 
-    public function update(Request $request): RedirectResponse
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE PROFILE
+    |--------------------------------------------------------------------------
+    */
+    public function updateProfile(Request $request)
     {
-        $user = $request->user();
+        $user = Auth::user();
 
         $rules = [
-            'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'email',
-                'max:255',
-                Rule::unique(User::class)->ignore($user->id)
-            ],
-            'phone' => ['required', 'string', 'max:30'],
-
-            // Alamat default
-            'default_recipient_name' => ['nullable', 'string', 'max:255'],
-
-            'default_province_id' => ['nullable', 'string', 'max:255'],
-            'default_province' => ['nullable', 'string', 'max:255'],
-            
-            'default_city_id' => ['nullable', 'string', 'max:255'],
-            'default_city' => ['nullable', 'string', 'max:255'],
-
-            'default_district_id' => ['nullable', 'string', 'max:255'],
-            'default_district' => ['nullable', 'string', 'max:255'],
-
-            'default_postal_code' => ['nullable', 'string', 'max:20'],
-            'default_full_address' => ['nullable', 'string'],
+            'phone' => ['required', 'string', 'max:20'],
+            'email' => ['required', 'email'],
         ];
 
-        // Validasi tambahan untuk tipe akun perusahaan
+        // Validasi berdasarkan tipe akun
         if ($user->account_type === 'company') {
-            $rules['company_name'] = [
-                'required',
-                'string',
-                'max:255'
-            ];
 
-            $rules['contact_person'] = [
-                'required',
-                'string',
-                'max:255'
-            ];
+            $rules['company_name'] = ['required', 'string', 'max:255'];
+            $rules['contact_person'] = ['required', 'string', 'max:255'];
+
         } else {
-            $rules['name'] = [
-                'required',
-                'string',
-                'max:255'
-            ];
+
+            $rules['name'] = ['required', 'string', 'max:255'];
         }
 
         $validated = $request->validate($rules);
 
-        // Update data user berdasarkan tipe akun (Perusahaan atau Individu)
-        if ($user->account_type === 'company') {
-            $user->company_name = $validated['company_name'];
-            $user->contact_person = $validated['contact_person'];
-            $user->name = $validated['contact_person'];
-        } else {
-            $user->name = $validated['name'];
-        }
+        $user->update($validated);
 
-        // Cek apakah email berubah untuk menentukan apakah perlu reset verifikasi email atau tidak
-        $emailChanged = $user->email !== $validated['email'];
-
-        // Update data umum seperti email, phone, dan alamat default
-        $user->email = $validated['email'];
-        $user->phone = $validated['phone'];
-
-        // Update alamat default
-        $user->default_recipient_name = $validated['default_recipient_name'] ?? null;
-
-        // Provinsi, Kota, dan Kecamatan disimpan baik nama maupun ID-nya untuk memudahkan integrasi dengan layanan pengiriman
-        $user->default_province_id = $validated['default_province_id'] ?? null;
-        $user->default_city_id = $validated['default_city_id'] ?? null;
-        $user->default_district_id = $validated['default_district_id'] ?? null;
-        $user->default_postal_code = $validated['default_postal_code'] ?? null;
-        $user->default_full_address = $validated['default_full_address'] ?? null;
-
-        // Jika email berubah, reset status verifikasi email
-        if ($emailChanged) {
-            $user->email_verified_at = null;
-        }
-
-        $user->save();
-
-        return redirect()->route('profile.edit')->with('success', 'Profil berhasil diperbarui.');
+        return back()->with('success', 'Profil berhasil diperbarui.');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE ADDRESS
+    |--------------------------------------------------------------------------
+    */
     public function updateAddress(Request $request)
     {
-    $request->validate([
-        'default_recipient_name' => ['required', 'string', 'max:255'],
-        'default_province_id' => ['required', 'string', 'max:255'],
-        'default_city_id' => ['required', 'string', 'max:255'],
-        'default_district_id' => ['required', 'string', 'max:255'],
-        'default_postal_code' => ['nullable', 'string', 'max:20'],
-        'default_full_address' => ['required', 'string'],
-    ]);
+        $validated = $request->validate([
+            'default_recipient_name' => ['nullable', 'string', 'max:255'],
+            'default_province_id' => ['nullable', 'string'],
+            'default_province' => ['nullable', 'string'],
+            'default_city_id' => ['nullable', 'string'],
+            'default_city' => ['nullable', 'string'],
+            'default_district_id' => ['nullable', 'string'],
+            'default_district' => ['nullable', 'string'],
+            'default_postal_code' => ['nullable', 'string', 'max:10'],
+            'default_full_address' => ['nullable', 'string'],
+        ]);
 
-    $user = auth()->user();
+        Auth::user()->update($validated);
 
-    $user->update([
-        'default_recipient_name' => $request->default_recipient_name,
-        'default_province_id' => $request->default_province_id,
-        'default_city_id' => $request->default_city_id,
-        'default_district_id' => $request->default_district_id,
-        'default_postal_code' => $request->default_postal_code,
-        'default_full_address' => $request->default_full_address,
-    ]);
-
-    return back()->with('success', 'Alamat berhasil diperbarui');
+        return back()->with('success', 'Alamat berhasil diperbarui.');
     }
 
-    public function destroy(Request $request): RedirectResponse
+    /*
+    |--------------------------------------------------------------------------
+    | DELETE ACCOUNT
+    |--------------------------------------------------------------------------
+    */
+    public function destroy(Request $request)
     {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+        $request->validate([
+            'password' => ['required'],
         ]);
 
         $user = $request->user();
@@ -148,6 +91,6 @@ class ProfileController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return Redirect::to('/');
     }
 }

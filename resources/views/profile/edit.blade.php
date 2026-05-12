@@ -93,59 +93,146 @@
                        {{-- Tab 2: Alamat Default --}}
                         <div class="tab-pane fade" id="alamat-default">
                             <div class="card border-0 shadow-sm rounded-0 p-4 p-md-5">
-                                <h4 class="fw-bold mb-4">Alamat Default Checkout</h4>
+
+                                <h4 class="fw-bold mb-4">
+                                    Alamat Default Checkout
+                                </h4>
 
                                 <form method="POST" action="{{ route('profile.address.update') }}">
                                     @csrf
-
+                                    @method('PATCH')
+                                    
                                     <div class="row g-3">
+
+                                        {{-- NAMA --}}
                                         <div class="col-12">
-                                            <label class="form-label small fw-bold text-muted">Nama Penerima Default</label>
-                                            <input type="text" name="default_recipient_name"
+                                            <label class="form-label small fw-bold text-muted">
+                                                Nama Penerima
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                name="default_recipient_name"
                                                 value="{{ old('default_recipient_name', $user->default_recipient_name) }}"
-                                                class="form-control bg-light border-0 py-2">
+                                                class="form-control bg-light border-0 py-2"
+                                            >
                                         </div>
 
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold text-muted">Provinsi</label>
-                                            <input type="text" name="default_province"
+                                        {{-- PROVINSI --}}
+                                        <div class="col-md-4">
+
+                                            <label class="form-label small fw-bold text-muted">
+                                                Provinsi
+                                            </label>
+
+                                            <select
+                                                id="province"
+                                                name="default_province_id"
+                                                class="form-select bg-light border-0 py-2"
+                                            >
+                                                <option value="">
+                                                    Pilih Provinsi
+                                                </option>
+                                            </select>
+
+                                            <input
+                                                type="hidden"
+                                                name="default_province"
+                                                id="province_name"
                                                 value="{{ old('default_province', $user->default_province) }}"
-                                                class="form-control bg-light border-0 py-2">
+                                            >
                                         </div>
 
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold text-muted">Kota / Kabupaten</label>
-                                            <input type="text" name="default_city"
+                                        {{-- KOTA --}}
+                                        <div class="col-md-4">
+
+                                            <label class="form-label small fw-bold text-muted">
+                                                Kota / Kabupaten
+                                            </label>
+
+                                            <select
+                                                id="city"
+                                                name="default_city_id"
+                                                class="form-select bg-light border-0 py-2"
+                                            >
+                                                <option value="">
+                                                    Pilih Kota
+                                                </option>
+                                            </select>
+
+                                            <input
+                                                type="hidden"
+                                                name="default_city"
+                                                id="city_name"
                                                 value="{{ old('default_city', $user->default_city) }}"
-                                                class="form-control bg-light border-0 py-2">
+                                            >
                                         </div>
 
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold text-muted">Kecamatan</label>
-                                            <input type="text" name="default_district"
+                                        {{-- KECAMATAN --}}
+                                        <div class="col-md-4">
+
+                                            <label class="form-label small fw-bold text-muted">
+                                                Kecamatan
+                                            </label>
+
+                                            <select
+                                                id="district"
+                                                name="default_district_id"
+                                                class="form-select bg-light border-0 py-2"
+                                            >
+                                                <option value="">
+                                                    Pilih Kecamatan
+                                                </option>
+                                            </select>
+
+                                            <input
+                                                type="hidden"
+                                                name="default_district"
+                                                id="district_name"
                                                 value="{{ old('default_district', $user->default_district) }}"
-                                                class="form-control bg-light border-0 py-2">
+                                            >
                                         </div>
 
+                                        {{-- KODE POS --}}
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-bold text-muted">Kode Pos</label>
-                                            <input type="text" name="default_postal_code"
+
+                                            <label class="form-label small fw-bold text-muted">
+                                                Kode Pos
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                name="default_postal_code"
                                                 value="{{ old('default_postal_code', $user->default_postal_code) }}"
-                                                class="form-control bg-light border-0 py-2">
+                                                class="form-control bg-light border-0 py-2"
+                                            >
                                         </div>
 
+                                        {{-- ALAMAT --}}
                                         <div class="col-12">
-                                            <label class="form-label small fw-bold text-muted">Alamat Lengkap</label>
-                                            <textarea name="default_full_address" rows="3"
-                                                class="form-control bg-light border-0 py-2">{{ old('default_full_address', $user->default_full_address) }}</textarea>
+
+                                            <label class="form-label small fw-bold text-muted">
+                                                Alamat Lengkap
+                                            </label>
+
+                                            <textarea
+                                                name="default_full_address"
+                                                rows="3"
+                                                class="form-control bg-light border-0 py-2"
+                                            >{{ old('default_full_address', $user->default_full_address) }}</textarea>
                                         </div>
+
                                     </div>
 
                                     <div class="mt-5 text-end">
-                                        <button type="submit" class="btn btn-primary px-5 fw-bold rounded-0 shadow-sm">
+                                        <button
+                                            type="submit"
+                                            class="btn btn-primary px-5 fw-bold rounded-0 shadow-sm"
+                                        >
                                             Update Alamat
                                         </button>
                                     </div>
+
                                 </form>
                             </div>
                         </div>
@@ -230,4 +317,151 @@
         border-radius: 0 !important;
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const province = document.getElementById('province');
+    const city = document.getElementById('city');
+    const district = document.getElementById('district');
+
+    const oldProvinceId = "{{ old('default_province_id', $user->default_province_id) }}";
+    const oldCityId = "{{ old('default_city_id', $user->default_city_id) }}";
+    const oldDistrictId = "{{ old('default_district_id', $user->default_district_id) }}";
+
+    async function loadProvinces() {
+
+        try {
+
+            const res = await fetch('/regions/provinces');
+            const data = await res.json();
+
+            province.innerHTML =
+                '<option value="">Pilih Provinsi</option>';
+
+            data.forEach(item => {
+
+                province.innerHTML += `
+                    <option value="${item.id}">
+                        ${item.name}
+                    </option>
+                `;
+            });
+
+            if (oldProvinceId) {
+
+                province.value = oldProvinceId;
+
+                province.dispatchEvent(
+                    new Event('change')
+                );
+            }
+
+        } catch (error) {
+
+            console.error('Gagal load provinsi:', error);
+        }
+    }
+
+    province.addEventListener('change', async function () {
+
+        const provinceId = this.value;
+
+        document.getElementById('province_name').value =
+            this.options[this.selectedIndex].text;
+
+        city.innerHTML =
+            '<option value="">Loading...</option>';
+
+        district.innerHTML =
+            '<option value="">Pilih Kecamatan</option>';
+
+        if (!provinceId) return;
+
+        try {
+
+            const res =
+                await fetch(`/regions/cities/${provinceId}`);
+
+            const data = await res.json();
+
+            city.innerHTML =
+                '<option value="">Pilih Kota</option>';
+
+            data.forEach(item => {
+
+                city.innerHTML += `
+                    <option value="${item.id}">
+                        ${item.name}
+                    </option>
+                `;
+            });
+
+            if (oldCityId) {
+
+                city.value = oldCityId;
+
+                city.dispatchEvent(
+                    new Event('change')
+                );
+            }
+
+        } catch (error) {
+
+            console.error('Gagal load kota:', error);
+        }
+    });
+
+    city.addEventListener('change', async function () {
+
+        const cityId = this.value;
+
+        document.getElementById('city_name').value =
+            this.options[this.selectedIndex].text;
+
+        district.innerHTML =
+            '<option value="">Loading...</option>';
+
+        if (!cityId) return;
+
+        try {
+
+            const res =
+                await fetch(`/regions/districts/${cityId}`);
+
+            const data = await res.json();
+
+            district.innerHTML =
+                '<option value="">Pilih Kecamatan</option>';
+
+            data.forEach(item => {
+
+                district.innerHTML += `
+                    <option value="${item.id}">
+                        ${item.name}
+                    </option>
+                `;
+            });
+
+            if (oldDistrictId) {
+
+                district.value = oldDistrictId;
+            }
+
+        } catch (error) {
+
+            console.error('Gagal load kecamatan:', error);
+        }
+    });
+
+    district.addEventListener('change', function () {
+
+        document.getElementById('district_name').value =
+            this.options[this.selectedIndex].text;
+    });
+
+    loadProvinces();
+});
+</script>
+
 @endsection

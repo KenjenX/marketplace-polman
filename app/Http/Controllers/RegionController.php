@@ -12,9 +12,9 @@ class RegionController extends Controller
             'https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json'
         );
 
-        return response()->json([
-            'value' => $response->json()
-        ]);
+        return response()->json(
+            $response->json()
+        );
     }
 
     public function cities($provinceId)
@@ -23,9 +23,9 @@ class RegionController extends Controller
             "https://www.emsifa.com/api-wilayah-indonesia/api/regencies/{$provinceId}.json"
         );
 
-        return response()->json([
-            'value' => $response['emsifa']['results']
-        ]);
+        return response()->json(
+            $response->json()
+        );
     }
 
     public function districts($cityId)
@@ -34,8 +34,8 @@ class RegionController extends Controller
             "https://www.emsifa.com/api-wilayah-indonesia/api/districts/{$cityId}.json"
         );
 
-        return response()->json([
-            'value' => $response['emsifa']['results']
-        ]);
+        return response()->json(
+            $response->json()
+        );
     }
 }
