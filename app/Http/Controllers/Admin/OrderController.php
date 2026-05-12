@@ -111,7 +111,7 @@ class OrderController extends Controller
     /**
      * Update Status Order
      */
-    public function updateStatus(Request $request, Order $order)
+    public function updateOrderStatus(Request $request, Order $order)
     {
         $request->validate([
             'status' => 'required|in:processing,shipped,completed,cancelled'
@@ -131,6 +131,18 @@ class OrderController extends Controller
             $order->update([
                 'status' => $request->status
             ]);
+
+            // Kirim notifikasi jika status diubah menjadi 'completed'
+            if ($request->status === 'completed') {
+                $order->user->notify(new OrderNotification([
+                    'title' => 'Pesanan Selesai',
+                    'message' => "Pesanan #{$order->order_code} telah selesai. Terima kasih telah berbelanja!",
+                    'order_uuid' => $order->uuid,
+                    'icon' => 'bi-check2-all',
+                    'type' => 'success',
+                    'url' => route('orders.show', $order->uuid),
+                ]));
+            }
         });
 
         return back()->with(

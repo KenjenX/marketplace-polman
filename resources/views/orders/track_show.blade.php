@@ -30,7 +30,7 @@
                     </div>
                     <div class="flex-grow-1 border-start ps-4 position-relative">
                         {{-- Dot Timeline --}}
-                        <div class="position-absolute start-0 translate-middle-x bg-primary rounded-circle" 
+                        <div class="position-absolute start-0 translate-middle-x bg-primary rounded-circle"
                              style="width: 12px; height: 12px; margin-top: 5px;"></div>
                         
                         <h6 class="mb-1">{{ $history['manifest_description'] }}</h6>

@@ -44,28 +44,13 @@ Route::post('/xendit/callback', [XenditCallbackController::class, 'handleInvoice
 
 /*
 |--------------------------------------------------------------------------
-| Confirm Email Page (PUBLIC)
-|--------------------------------------------------------------------------
-
-Route::get('/confirm_email', function (Request $request) {
-
-    return view('auth.confirm-email', [
-        'email' => $request->email
-    ]);
-
-})->name('confirm.email');
-*/
-
-
-/*
-|--------------------------------------------------------------------------
 | Authenticated User Routes
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        return redirect()->route('home');
     })->name('dashboard');
 
     // Profile
@@ -149,7 +134,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::controller(AdminOrderController::class)->prefix('orders')->name('orders.')->group(function () {
         Route::get('/', 'index')->name('index');
         
-        Route::get('/{order:uuid}', 'show')->name('show'); 
+        Route::get('/{order:uuid}', 'show')->name('show');
         Route::patch('/{order:uuid}/payment-status', 'updatePaymentStatus')->name('updatePaymentStatus');
         Route::patch('/{order:uuid}/status', 'updateOrderStatus')->name('updateStatus');
         Route::patch('/{order:uuid}/update-tracking', 'updateTracking')->name('update-tracking');

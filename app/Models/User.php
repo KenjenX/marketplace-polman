@@ -60,6 +60,11 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new \App\Notifications\VerifyEmailIndonesia);
+    }
+
     public function getDisplayNameAttribute(): string
     {
         if ($this->account_type === 'company' && $this->company_name) {
