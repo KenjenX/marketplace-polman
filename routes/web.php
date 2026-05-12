@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\PaymentMethodController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController; // <-- TAMBAHAN BARU
 use App\Http\Controllers\RegionController;
 
 // Models
@@ -73,15 +74,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 
-    // Orders (FIXED: Menghapus redundansi /orders/orders)
+    // Orders
     Route::controller(OrderController::class)->prefix('orders')->name('orders.')->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::get('/{order:uuid}', 'show')->name('show'); // URL: /orders/{uuid}
-        Route::get('/{order:uuid}/track', 'track')->name('track'); // URL: /orders/{uuid}/track
-        Route::post('/orders/{order}/upload-receipt', [PaymentReceiptController::class, 'store'])->name('orders.upload_receipt');
+        Route::get('/{order:uuid}', 'show')->name('show'); 
+        Route::get('/{order:uuid}/track', 'track')->name('track'); 
     });
 
-    // Payment Receipt
+    // Payment Receipt (Sudah dirapikan, tidak dobel lagi)
     Route::post('/orders/{order:uuid}/upload-receipt', [PaymentReceiptController::class, 'store'])
         ->name('orders.upload_receipt');
 
@@ -91,7 +91,7 @@ Route::middleware('auth')->group(function () {
     })->name('notifications.markAllRead');
 
     // Region API
-        Route::prefix('regions')->group(function () {
+    Route::prefix('regions')->group(function () {
         Route::get('/provinces', [RegionController::class, 'provinces']);
         Route::get('/cities/{provinceId}', [RegionController::class, 'cities']);
         Route::get('/districts/{cityId}', [RegionController::class, 'districts']);
@@ -105,14 +105,8 @@ Route::middleware('auth')->group(function () {
 */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard', [
-            'categoryCount' => Category::count(),
-            'productCount' => Product::count(),
-            'orderCount' => Order::count(),
-            'waitingValidationCount' => Order::where('status', 'waiting_receipt_validation')->count(),
-        ]);
-    })->name('dashboard');
+    // ROUTE DASHBOARD ADMIN SUDAH MENGGUNAKAN CONTROLLER
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('products', AdminProductController::class);
     Route::resource('categories', CategoryController::class);
@@ -129,7 +123,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::controller(AdminOrderController::class)->prefix('orders')->name('orders.')->group(function () {
         Route::get('/', 'index')->name('index');
-        
         Route::get('/{order:uuid}', 'show')->name('show'); 
         Route::patch('/{order:uuid}/payment-status', 'updatePaymentStatus')->name('updatePaymentStatus');
         Route::patch('/{order:uuid}/status', 'updateOrderStatus')->name('updateStatus');

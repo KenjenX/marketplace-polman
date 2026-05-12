@@ -99,7 +99,7 @@
                                     @csrf
 
                                     <div class="row g-3">
-                                        {{-- NAMA PENERIMA DEFAULT (Wajib Isi & Auto Fill) --}}
+                                        {{-- NAMA PENERIMA DEFAULT --}}
                                         <div class="col-12">
                                             <label class="form-label small fw-bold text-muted">Nama Penerima Default <span class="text-danger">*</span></label>
                                             <input type="text" name="default_recipient_name"
@@ -154,6 +154,26 @@
                                             <textarea name="default_full_address" rows="3"
                                                 class="form-control bg-light border-0 py-2">{{ old('default_full_address', $user->default_full_address) }}</textarea>
                                         </div>
+
+                                        {{-- [SEMENTARA DIMATIKAN] TITIK LOKASI PETA GOOGLE MAPS --}}
+                                        {{-- 
+                                        <div class="col-12 mt-4">
+                                            <label class="form-label small fw-bold text-muted">Tentukan Titik Lokasi (Opsional)</label>
+                                            <p class="small text-muted mb-2">Geser pin merah atau klik pada peta untuk menentukan titik koordinat lokasi pengiriman Anda.</p>
+                                            
+                                            <div id="map" style="height: 300px; width: 100%; border-radius: 8px; border: 1px solid #dee2e6;"></div>
+                                            
+                                            <div class="row g-2 mt-2">
+                                                <div class="col-6">
+                                                    <input type="text" name="latitude" id="latitude" class="form-control bg-light border-0 py-2 small text-muted" value="{{ old('latitude', $user->latitude) }}" placeholder="Latitude" readonly>
+                                                </div>
+                                                <div class="col-6">
+                                                    <input type="text" name="longitude" id="longitude" class="form-control bg-light border-0 py-2 small text-muted" value="{{ old('longitude', $user->longitude) }}" placeholder="Longitude" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        --}}
+
                                     </div>
 
                                     <div class="mt-5 d-flex justify-content-end align-items-center">
@@ -251,7 +271,7 @@
     }
 </style>
 
-{{-- Pastikan script SweetAlert diambil jika belum ada di layouts.store --}}
+{{-- Script SweetAlert --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -364,4 +384,46 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+
+{{-- [SEMENTARA DIMATIKAN] SCRIPT GOOGLE MAPS API --}}
+{{-- 
+<script>
+    let map, marker;
+    
+    function initMap() {
+        const savedLat = parseFloat("{{ $user->latitude ?? -6.914744 }}");
+        const savedLng = parseFloat("{{ $user->longitude ?? 107.609810 }}");
+        const myLatLng = { lat: savedLat, lng: savedLng };
+
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 15,
+            center: myLatLng,
+        });
+
+        marker = new google.maps.Marker({
+            position: myLatLng,
+            map: map,
+            draggable: true,
+            title: "Geser pin ke lokasi Anda"
+        });
+
+        marker.addListener("dragend", (event) => {
+            updateInputs(event.latLng);
+        });
+
+        map.addListener("click", (event) => {
+            marker.setPosition(event.latLng);
+            updateInputs(event.latLng);
+        });
+    }
+
+    function updateInputs(latLng) {
+        document.getElementById("latitude").value = latLng.lat();
+        document.getElementById("longitude").value = latLng.lng();
+    }
+</script>
+
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=API_KEY_DISINI&callback=initMap"></script>
+--}}
+
 @endsection

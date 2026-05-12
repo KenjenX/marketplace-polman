@@ -36,7 +36,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'default_district',
         'default_postal_code',
         'default_full_address',
+        'latitude',
+        'longitude',
     ];
+    
     /**
      * The attributes that should be hidden for serialization.
      *

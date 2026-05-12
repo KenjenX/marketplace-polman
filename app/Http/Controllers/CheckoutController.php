@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Notifications\OrderNotification;
+use Illuminate\Support\Facades\Notification;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\PaymentMethod;
@@ -41,34 +44,25 @@ class CheckoutController extends Controller
      */
     public function store(Request $request)
     {
+        // Validasi disesuaikan dengan input form checkout
         $request->validate([
             'recipient_name'    => 'required|max:255',
             'phone'             => 'required|max:30',
             'province'          => 'required',
+            'city'              => 'required',
             'city_id'           => 'required',
             'district'          => 'required',
+            'postal_code'       => 'nullable|max:20',
             'full_address'      => 'required',
             'payment_method_id' => 'required|exists:payment_methods,id',
             'shipping_method'   => 'required|in:jne,pos,tiki',
+            'notes'             => 'nullable|string'
         ]);
 
         try {
-
             Log::info('CHECKOUT START');
 
             $user = auth()->user();
-
-            if (
-                !$user->default_province ||
-                !$user->default_city ||
-                !$user->default_district ||
-                !$user->default_full_address
-            ) {
-                return back()->with(
-                    'error',
-                    'Alamat default belum lengkap.'
-                );
-            }
 
             $cart = Cart::with(['items.variant.product'])
                 ->where('user_id', auth()->id())
@@ -82,7 +76,6 @@ class CheckoutController extends Controller
             $totalWeight = 0;
 
             foreach ($cart->items as $item) {
-
                 $variant = ProductVariant::find($item->product_variant_id);
 
                 if (!$variant || $item->quantity > $variant->stock) {
@@ -95,9 +88,8 @@ class CheckoutController extends Controller
 
             Log::info('CALCULATE SHIPPING');
 
-            // HITUNG ONGKIR DI LUAR TRANSACTION
             $shippingCost = $this->calculateShipping(
-                $user->default_city_id,
+                $request->city_id,
                 $totalWeight,
                 $request->shipping_method
             );
@@ -106,7 +98,6 @@ class CheckoutController extends Controller
 
             $paymentMethod = PaymentMethod::findOrFail($request->payment_method_id);
 
-            // TRANSACTION HANYA DATABASE
             $order = DB::transaction(function () use (
                 $request,
                 $cart,
@@ -115,10 +106,8 @@ class CheckoutController extends Controller
                 $shippingCost,
                 $user
             ) {
-
                 foreach ($cart->items as $item) {
-
-                    $variant = ProductVariant::lockForUpdate()->find($item->product_variant_id);
+                    $variant = ProductVariant::find($item->product_variant_id);
 
                     if (!$variant || $item->quantity > $variant->stock) {
                         throw new \Exception('Stok tidak cukup.');
@@ -127,27 +116,18 @@ class CheckoutController extends Controller
                     $variant->decrement('stock', $item->quantity);
                 }
 
-                $address = auth()->user()->addresses()->create([
-
-                    'recipient_name' => $user->default_recipient_name
-                        ?? $user->name,
-
-                    'phone' => $user->phone,
-
-                    'province' => $user->default_province,
-
-                    'city' => $user->default_city,
-
-                    'city_id' => $user->default_city_id,
-
-                    'district' => $user->default_district,
-
-                    'postal_code' => $user->default_postal_code,
-
-                    'full_address' => $user->default_full_address,
+                $address = $user->addresses()->create([
+                    'recipient_name' => $request->recipient_name,
+                    'phone'          => $request->phone,
+                    'province'       => $request->province,
+                    'city'           => $request->city,
+                    'city_id'        => $request->city_id,
+                    'district'       => $request->district,
+                    'postal_code'    => $request->postal_code,
+                    'full_address'   => $request->full_address,
                 ]);
 
-                $order = auth()->user()->orders()->create([
+                $order = $user->orders()->create([
                     'uuid'                => Str::uuid(),
                     'address_id'          => $address->id,
                     'payment_method_id'   => $paymentMethod->id,
@@ -161,7 +141,6 @@ class CheckoutController extends Controller
                 ]);
 
                 foreach ($cart->items as $item) {
-
                     $variant = ProductVariant::find($item->product_variant_id);
 
                     $order->items()->create([
@@ -182,105 +161,64 @@ class CheckoutController extends Controller
 
             Log::info('DB TRANSACTION DONE');
 
-            // XENDIT DI LUAR TRANSACTION
-            $isXendit = Str::contains(
-                strtolower($paymentMethod->name),
-                'xendit'
-            );
+            // --- TRIGGER NOTIFIKASI KE SEMUA ADMIN ---
+            // Mengambil user dengan role admin (menggunakan LOWER untuk keamanan)
+            $admins = User::whereRaw('LOWER(role) = ?', ['admin'])->get();
+            
+            if ($admins->isNotEmpty()) {
+                $details = [
+                    'for_admin'  => true, // PENANDA KHUSUS UNTUK ADMIN
+                    'title'      => 'Pesanan Baru Masuk!',
+                    'message'    => 'Order ' . $order->order_code . ' menunggu pembayaran.',
+                    'order_uuid' => $order->uuid,
+                    'url'        => route('admin.orders.show', $order->uuid),
+                    'icon'       => 'bi-cart-plus-fill',
+                    'type'       => 'primary' 
+                ];
+                Notification::send($admins, new OrderNotification($details));
+            }
 
+            $isXendit = Str::contains(strtolower($paymentMethod->name), 'xendit');
             if ($isXendit) {
-
                 try {
-
-                    Log::info('CREATE XENDIT INVOICE');
-
-                    Configuration::setXenditKey(
-                        config('services.xendit.secret_key')
-                    );
-
+                    Configuration::setXenditKey(config('services.xendit.secret_key'));
                     $apiInstance = new InvoiceApi();
-
                     $invoiceRequest = new CreateInvoiceRequest([
                         'external_id' => $order->order_code,
                         'amount' => (float) $order->total_price,
                         'description' => 'Pembayaran Order ' . $order->order_code,
                         'success_redirect_url' => route('orders.show', $order->uuid),
                     ]);
-
                     $response = $apiInstance->createInvoice($invoiceRequest);
-
-                    $order->update([
-                        'payment_url' => $response['invoice_url']
-                    ]);
-
-                    Log::info('XENDIT SUCCESS');
-
+                    $order->update(['payment_url' => $response['invoice_url']]);
                     return redirect()->away($response['invoice_url']);
-
                 } catch (\Exception $e) {
-
                     Log::error('XENDIT ERROR: ' . $e->getMessage());
-
-                    return back()->with(
-                        'error',
-                        'Gagal membuat invoice Xendit.'
-                    );
+                    return back()->with('error', 'Gagal membuat invoice Xendit.');
                 }
             }
 
-            Log::info('MANUAL PAYMENT');
-
-            return redirect()
-                ->route('orders.show', $order->uuid)
-                ->with('success', 'Pesanan berhasil dibuat.');
+            return redirect()->route('orders.show', $order->uuid)->with('success', 'Pesanan berhasil dibuat.');
 
         } catch (\Exception $e) {
-
             Log::error('CHECKOUT ERROR: ' . $e->getMessage());
-
-            return back()->with(
-                'error',
-                $e->getMessage()
-            );
+            return back()->with('error', $e->getMessage());
         }
     }
 
     private function calculateShipping($destination, $weight, $courier)
     {
         try {
-
-            $response = Http::timeout(15)
-                ->withHeaders([
-                    'key' => config('services.rajaongkir.key')
-                ])
-                ->post(
-                    config('services.rajaongkir.url') . 'cost',
-                    [
-                        'origin' => 153,
-                        'destination' => $destination,
-                        'weight' => $weight,
-                        'courier' => $courier,
-                    ]
-                );
-
-            Log::info('RAJAONGKIR RESPONSE', [
-                'body' => $response->body()
-            ]);
-
-            if (
-                $response->successful() &&
-                isset($response['rajaongkir']['results'][0]['costs'][0]['cost'][0]['value'])
-            ) {
-
+            $response = Http::timeout(15)->withHeaders(['key' => config('services.rajaongkir.key')])
+                ->post(config('services.rajaongkir.url') . 'cost', [
+                    'origin' => 153, 'destination' => $destination, 'weight' => $weight, 'courier' => $courier,
+                ]);
+            if ($response->successful() && isset($response['rajaongkir']['results'][0]['costs'][0]['cost'][0]['value'])) {
                 return $response['rajaongkir']['results'][0]['costs'][0]['cost'][0]['value'];
             }
-
         } catch (\Exception $e) {
-
             Log::error('RAJAONGKIR ERROR: ' . $e->getMessage());
         }
-
-        // fallback
         return 15000;
     }
 }

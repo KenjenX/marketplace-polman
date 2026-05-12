@@ -99,7 +99,7 @@
     }
 
     .notification-dropdown-menu {
-        width: 350px !important; /* Lebar ditambah sedikit agar teks tidak terlalu sesak */
+        width: 350px !important;
     }
 
     .icon-circle {
@@ -112,12 +112,10 @@
         flex-shrink: 0;
     }
 
-    /* Helper for Filter Icon Cart agar konsisten dengan bell */
     .icon-filter-navy {
         filter: invert(15%) sepia(61%) saturate(3505%) hue-rotate(200deg) brightness(92%) contrast(105%);
     }
 
-    /* Menghilangkan panah dropdown pada notifikasi */
     .no-caret::after {
         display: none !important;
     }
@@ -203,11 +201,21 @@
                         </a>
                     </li>
 
-                    {{-- 2. Ikon Notifikasi (Bell Dinamis) --}}
+                    {{-- 2. Ikon Notifikasi (KHUSUS USER) --}}
                     <li class="nav-item dropdown">
                         <a class="nav-link position-relative px-3 no-caret" href="#" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-bell fs-5" style="color: #013780;"></i>
-                            @php $unreadCount = auth()->user()->unreadNotifications->count(); @endphp
+                            @php 
+                                // FILTER: Hanya ambil notif yang BUKAN untuk admin (for_admin => false)
+                                $unreadCount = auth()->user()->unreadNotifications()
+                                               ->where('data->for_admin', false)
+                                               ->count(); 
+                                
+                                $userNotifications = auth()->user()->notifications()
+                                                     ->where('data->for_admin', false)
+                                                     ->latest()
+                                                     ->get();
+                            @endphp
                             @if($unreadCount > 0)
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-pulse" style="margin-top: 5px; margin-left: -5px;">
                                     {{ $unreadCount > 9 ? '9+' : $unreadCount }}
@@ -229,7 +237,7 @@
                             </li>
                             
                             <div class="notification-scroll" style="max-height: 350px; overflow-y: auto;">
-                                @forelse(auth()->user()->notifications as $notification)
+                                @forelse($userNotifications as $notification)
                                     <li>
                                         <a class="dropdown-item d-flex align-items-start py-3 {{ $notification->read_at ? 'opacity-75' : 'bg-light-subtle fw-bold' }}" 
                                            href="{{ $notification->data['url'] ?? '#' }}">
@@ -258,7 +266,7 @@
                                 @endforelse
                             </div>
                             
-                            @if(auth()->user()->notifications->count() > 0)
+                            @if($userNotifications->count() > 0)
                                 <li><hr class="dropdown-divider m-0"></li>
                                 <li>
                                     <a class="dropdown-item text-center small text-primary fw-bold py-2" href="{{ route('orders.index') }}">

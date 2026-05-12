@@ -115,29 +115,26 @@ class ProfileController extends Controller
     }
 
     public function updateAddress(Request $request)
-    {
-        // PERBAIKAN: recipient_name wajib isi, yang lain nullable agar tidak diam-diam error
-        $validated = $request->validate([
-            'default_recipient_name' => ['required', 'string', 'max:255'],
-            'default_province_id'    => ['nullable', 'string', 'max:255'],
-            'default_province'       => ['nullable', 'string', 'max:255'],
-            'default_city_id'        => ['nullable', 'string', 'max:255'],
-            'default_city'           => ['nullable', 'string', 'max:255'],
-            'default_district_id'    => ['nullable', 'string', 'max:255'],
-            'default_district'       => ['nullable', 'string', 'max:255'],
-            'default_postal_code'    => ['nullable', 'string', 'max:20'],
-            'default_full_address'   => ['nullable', 'string'],
-        ]);
+        {
+            $validated = $request->validate([
+                'default_recipient_name' => ['required', 'string', 'max:255'],
+                'default_province_id'    => ['nullable', 'string', 'max:255'],
+                'default_province'       => ['nullable', 'string', 'max:255'],
+                'default_city_id'        => ['nullable', 'string', 'max:255'],
+                'default_city'           => ['nullable', 'string', 'max:255'],
+                'default_district_id'    => ['nullable', 'string', 'max:255'],
+                'default_district'       => ['nullable', 'string', 'max:255'],
+                'default_postal_code'    => ['nullable', 'string', 'max:20'],
+                'default_full_address'   => ['nullable', 'string'],
+                'latitude'               => ['nullable', 'string', 'max:255'], // TAMBAHKAN INI
+                'longitude'              => ['nullable', 'string', 'max:255'], // TAMBAHKAN INI
+            ]);
 
-        $user = auth()->user();
+            $user = auth()->user();
+            $user->update($validated);
 
-        // Jauh lebih bersih dan rapi
-        $user->update($validated);
-
-        // PERBAIKAN: Gunakan status-alamat agar trigger popup di blade
-        return back()->with('status-alamat', 'alamat-updated');
-    }
-
+            return back()->with('status-alamat', 'alamat-updated');
+        }
     public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [
