@@ -24,24 +24,11 @@ class OrderController extends Controller
             ->get();
 
         /**
-         * Auto expire order jika melewati deadline & Kirim Notif ke User
+         * Auto expire order jika melewati deadline
+         * Notifikasi sudah ditangani secara otomatis oleh sistem lama Mas
          */
         foreach ($orders as $order) {
-            $oldStatus = $order->status;
             $order->expireIfNeeded();
-            
-            // Jika status berubah jadi expired, kirim notifikasi ke user
-            if ($oldStatus !== 'expired' && $order->status === 'expired') {
-                $order->user->notify(new OrderNotification([
-                    'for_admin'  => false, // Milik User
-                    'title'      => 'Pesanan Kadaluarsa',
-                    'message'    => 'Waktu pembayaran untuk order ' . $order->order_code . ' telah habis.',
-                    'order_uuid' => $order->uuid,
-                    'url'        => route('orders.show', $order->uuid),
-                    'icon'       => 'bi-calendar-x',
-                    'type'       => 'danger'
-                ]));
-            }
         }
 
         /**
@@ -70,21 +57,7 @@ class OrderController extends Controller
         /**
          * Auto expire jika deadline lewat
          */
-        $oldStatus = $order->status;
         $order->expireIfNeeded();
-        
-        // Notif jika expired saat dibuka
-        if ($oldStatus !== 'expired' && $order->status === 'expired') {
-            $order->user->notify(new OrderNotification([
-                'for_admin'  => false,
-                'title'      => 'Pesanan Kadaluarsa',
-                'message'    => 'Waktu pembayaran untuk order ' . $order->order_code . ' telah habis.',
-                'order_uuid' => $order->uuid,
-                'url'        => route('orders.show', $order->uuid),
-                'icon'       => 'bi-calendar-x',
-                'type'       => 'danger'
-            ]));
-        }
 
         /**
          * Reload data terbaru + eager loading
@@ -92,8 +65,14 @@ class OrderController extends Controller
         $order->refresh()->load([
             'address',
             'paymentReceipt',
+
+            // Order Items
             'items',
+
+            // Variant Produk
             'items.productVariant',
+
+            // Produk dari Variant
             'items.productVariant.product',
         ]);
 

@@ -279,7 +279,35 @@ document.addEventListener('DOMContentLoaded', function () {
     // ----------------------------------------------------
     // NOTIFIKASI POPUP ERROR & SUKSES (SWEETALERT)
     // ----------------------------------------------------
-    @if ($errors->any())
+    
+    // Notifikasi untuk Ganti Password (Gagal)
+    @if ($errors->updatePassword->any())
+        Swal.fire({
+            icon: 'error',
+            title: 'Ganti Password Gagal',
+            text: '{{ $errors->updatePassword->first() }}',
+            confirmButtonColor: '#013780',
+        });
+        // Pindah ke tab keamanan
+        const securityTab = document.querySelector('a[href="#keamanan"]');
+        bootstrap.Tab.getOrCreateInstance(securityTab).show();
+    @endif
+
+    // Notifikasi untuk Ganti Password (Berhasil)
+    @if (session('status') === 'password-updated')
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: 'Password Anda telah berhasil diperbarui.',
+            showConfirmButton: false,
+            timer: 2000
+        });
+        const securityTab = document.querySelector('a[href="#keamanan"]');
+        bootstrap.Tab.getOrCreateInstance(securityTab).show();
+    @endif
+
+    // Notifikasi Error Profil/Alamat Umum
+    @if ($errors->any() && !$errors->updatePassword->any())
         Swal.fire({
             icon: 'error',
             title: 'Gagal Menyimpan',
@@ -288,6 +316,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     @endif
 
+    // Notifikasi Berhasil Profil/Alamat
     @if (session('status-alamat') === 'alamat-updated' || session('success-profil'))
         Swal.fire({
             icon: 'success',
