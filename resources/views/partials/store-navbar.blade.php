@@ -3,8 +3,8 @@
     .store-navbar {
         background-color: rgba(255, 255, 255, 0.95) !important;
         backdrop-filter: blur(8px);
-        padding: 15px 0; 
-        border-bottom: 2px solid #f0f0f0; 
+        padding: 15px 0;
+        border-bottom: 2px solid #f0f0f0;
     }
 
     /* 2. Styling Logo & Brand */
@@ -17,7 +17,7 @@
     .store-brand {
         color: #013780 !important;
         font-weight: 700;
-        font-size: 1.2rem; 
+        font-size: 1.2rem;
         letter-spacing: -0.3px;
         text-transform: uppercase;
     }
@@ -26,9 +26,9 @@
     .store-navbar .nav-link {
         color: #013780 !important;
         font-weight: 600;
-        font-size: 13px; 
+        font-size: 13px;
         letter-spacing: 0.5px;
-        text-transform: uppercase; 
+        text-transform: uppercase;
         padding: 8px 15px !important;
         position: relative;
         transition: all 0.3s ease;
@@ -164,7 +164,7 @@
                         <li><hr class="dropdown-divider"></li>
                         @foreach($topCategories as $cat)
                             <li>
-                                <a class="dropdown-item py-2 d-flex justify-content-between align-items-center" 
+                                <a class="dropdown-item py-2 d-flex justify-content-between align-items-center"
                                    href="{{ route('products.index', ['categories' => [$cat->slug]]) }}">
                                    <span>{{ $cat->name }}</span>
                                    <span class="badge rounded-pill bg-light text-muted border ms-2" style="font-size: 10px;">
@@ -231,7 +231,7 @@
                             <div class="notification-scroll" style="max-height: 350px; overflow-y: auto;">
                                 @forelse(auth()->user()->notifications as $notification)
                                     <li>
-                                        <a class="dropdown-item d-flex align-items-start py-3 {{ $notification->read_at ? 'opacity-75' : 'bg-light-subtle fw-bold' }}" 
+                                        <a class="dropdown-item d-flex align-items-start py-3 {{ $notification->read_at ? 'opacity-75' : 'bg-light-subtle fw-bold' }}"
                                            href="{{ $notification->data['url'] ?? '#' }}">
                                             <div class="icon-circle bg-{{ $notification->data['type'] ?? 'primary' }}-subtle text-{{ $notification->data['type'] ?? 'primary' }} me-3">
                                                 <i class="bi {{ $notification->data['icon'] ?? 'bi-bell' }} fs-5"></i>
@@ -277,7 +277,7 @@
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item py-2" href="{{ route('profile.edit') }}">Profile</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('orders.index') }}">Pesanan Saya</a></li>
-                            @if(auth()->user()->role === 'admin')
+                            @if(auth()->check() && trim(auth()->user()->role) === 'admin')
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item py-2 fw-bold text-primary text-uppercase" href="{{ route('admin.dashboard') }}">Admin Panel</a></li>
                             @endif

@@ -12,7 +12,7 @@ class XenditCallbackController extends Controller
 {
     public function handleInvoice(Request $request)
     {
-        // Log payload untuk mempermudah debugging jika terjadi masalah integrasi
+        // Log payload untuk mempermudah debugging
         Log::info('Xendit Callback Inbound:', $request->all());
 
         try {
@@ -23,9 +23,8 @@ class XenditCallbackController extends Controller
                 return response()->json(['message' => 'External ID missing'], 400);
             }
 
-            // Gunakan database transaction untuk integritas data dan mencegah race condition
             return DB::transaction(function () use ($orderCode, $status) {
-                // Lock row order agar tidak dimodifikasi oleh proses lain selama transaksi berlangsung
+                // Mencari order berdasarkan order_code
                 $order = Order::where('order_code', $orderCode)
                              ->lockForUpdate()
                              ->first();
@@ -38,20 +37,25 @@ class XenditCallbackController extends Controller
                 // Logika: Jika pembayaran lunas (PAID atau SETTLED)
                 if ($status === 'PAID' || $status === 'SETTLED') {
                     
-                    // Pastikan kita hanya memproses order yang memang sedang menunggu pembayaran
-                    // Ini mencegah pengiriman notifikasi berulang
-                    if ($order->status === 'waiting_payment' || $order->status === 'payment_rejected') {
+                    /**
+                     * PERBAIKAN LOGIKA:
+                     * Mengizinkan transisi dari 'pending', 'waiting-payment', atau 'waiting-validation'
+                     * ke 'processing' karena pembayaran sudah terverifikasi otomatis oleh Xendit.
+                     */
+                    $allowedStatuses = ['pending', 'waiting-payment', 'waiting_payment', 'waiting-validation', 'payment_rejected'];
+                    
+                    if (in_array($order->status, $allowedStatuses)) {
                         
                         $order->update([
-                            'status' => 'processing',
-                            'status_bukti' => 'approved', // Status bukti otomatis disetujui
+                            'status' => 'processing', // Langsung ke processing (Warna Biru di Dashboard)
+                            'status_bukti' => 'approved', // Set disetujui (Warna Hijau di Dashboard)
                         ]);
 
-                        // Kirim notifikasi ke user
+                        // Mengirim notifikasi ke sisi user
                         if ($order->user) {
                             $order->user->notify(new OrderNotification([
                                 'title' => 'Pembayaran Diterima',
-                                'message' => "Pembayaran untuk pesanan #{$order->order_code} telah diterima secara otomatis. Pesanan Anda sedang diproses.",
+                                'message' => "Pembayaran untuk pesanan #{$order->order_code} telah diterima otomatis. Pesanan Anda kini sedang diproses.",
                                 'order_uuid' => $order->uuid,
                                 'icon' => 'bi-check-circle',
                                 'type' => 'success',
@@ -59,13 +63,17 @@ class XenditCallbackController extends Controller
                             ]));
                         }
 
-                        Log::info("Order {$orderCode} berhasil diverifikasi otomatis via Xendit.");
+                        Log::info("Order {$orderCode} BERHASIL dibayar otomatis. Status sekarang: processing.");
+                    } else {
+                        Log::info("Order {$orderCode} dilewati. Status saat ini sudah: {$order->status}");
                     }
                 }
-                // Logika: Jika invoice kadaluarsa di sistem Xendit
+                // Jika invoice kadaluarsa
                 elseif ($status === 'EXPIRED') {
                     if ($order->status !== 'expired') {
-                        $order->restoreReservedStock();
+                        if (method_exists($order, 'restoreReservedStock')) {
+                            $order->restoreReservedStock();
+                        }
                         $order->update(['status' => 'expired']);
                         Log::info("Order {$orderCode} ditandai kadaluarsa via Xendit.");
                     }
@@ -75,7 +83,7 @@ class XenditCallbackController extends Controller
             });
 
         } catch (\Exception $e) {
-            Log::error('Xendit Callback Error: ' . $e->getMessage());
+            Log::error('Xendit Callback Error: ' . $e->getMessage() . ' Line: ' . $e->getLine());
             return response()->json(['message' => 'Internal Server Error'], 500);
         }
     }

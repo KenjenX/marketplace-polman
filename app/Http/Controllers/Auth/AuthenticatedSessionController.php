@@ -53,7 +53,7 @@ class AuthenticatedSessionController extends Controller
         /**
          * Jika email sudah verified
          */
-        return redirect()->intended(RouteServiceProvider::HOME);
+        return redirect()->intended('/dashboard');
     }
 
     /**

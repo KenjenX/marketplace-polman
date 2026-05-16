@@ -38,6 +38,13 @@
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
+                        {{-- ADMIN PANEL --}}
+                        @if(auth()->user()->role === 'admin')
+
+                             <x-responsive-nav-link :href="route('admin.dashboard')">
+                                {{ __('Admin Panel') }}
+                            </x-responsive-nav-link>
+
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf

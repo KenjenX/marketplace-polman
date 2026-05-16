@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Controllers\Auth\NewPasswordController;
 
 // User Controllers
 use App\Http\Controllers\HomeController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\XenditCallbackController;
 
 // Admin Controllers
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProductVariantController;
@@ -41,6 +43,12 @@ Route::get('/products', [ProductController::class, 'index'])->name('products.ind
 Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 
 Route::post('/xendit/callback', [XenditCallbackController::class, 'handleInvoice']);
+
+// Route untuk menampilkan form reset password (URL yang ada di email)
+Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+
+// Route untuk memproses update password ke database
+Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 
 /*
 |--------------------------------------------------------------------------
@@ -118,6 +126,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         ]);
     })->name('dashboard');
 
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/export-csv', [AdminDashboardController::class, 'exportCSV'])->name('export.csv');
+
+    Route::get('/notifications/api', [AdminDashboardController::class, 'getNotifications'])->name('notifications.api');
+
     Route::resource('products', AdminProductController::class);
     Route::resource('categories', CategoryController::class);
     Route::resource('payment-methods', PaymentMethodController::class)->except(['show']);
@@ -138,6 +151,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::patch('/{order:uuid}/payment-status', 'updatePaymentStatus')->name('updatePaymentStatus');
         Route::patch('/{order:uuid}/status', 'updateOrderStatus')->name('updateStatus');
         Route::patch('/{order:uuid}/update-tracking', 'updateTracking')->name('update-tracking');
+        Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     });
 });
 
