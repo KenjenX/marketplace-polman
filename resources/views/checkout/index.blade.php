@@ -87,8 +87,38 @@
                     <h4 class="fw-bold mb-2">Pembayaran</h4>
                     <p class="text-muted small mb-4">Pilih metode pembayaran :</p>
                     
-                    @if($paymentMethods->count() > 0)
-                        <div class="d-flex flex-column gap-3 payment-container">
+                    <div class="d-flex flex-column gap-3 payment-container">
+                        
+                        {{-- ==================== 1. CARD MANDIRI MANUAL (STALIK / URUTAN PERTAMA) ==================== --}}
+                        <label class="payment-card-wrapper m-0">
+                            <input type="radio" name="payment_method_id" value="manual_mandiri" 
+                                   class="payment-radio-input" required 
+                                   {{ old('payment_method_id') == '3' ? 'checked' : '' }}>
+                            
+                            <div class="card payment-custom-card p-4 rounded-4 shadow-sm border">
+                                <div class="d-flex justify-content-between align-items-start w-100">
+                                    <div class="flex-grow-1 w-100">
+                                        <h5 class="fw-bold text-dark mb-2">Transfer Bank Mandiri (Manual Verification)</h5>
+                                        <p class="text-muted small mb-3">Transfer manual ke rekening Mandiri kami. Proses verifikasi membutuhkan upload bukti transfer.</p>
+                                        
+                                        <div class="p-3 bg-light rounded-3 border mt-2 border-dashed" style="max-width: 450px;">
+                                            <div class="small text-dark mb-1"><span class="text-muted">Bank:</span> <strong style="color: #1c3f60;">Bank Mandiri</strong></div>
+                                            <div class="small text-dark mb-1"><span class="text-muted">No. Rekening:</span> <strong class="fs-6 text-primary">123-00-9876543-21</strong></div>
+                                            <div class="small text-dark"><span class="text-muted">Atas Nama:</span> <strong>Politeknik Manufaktur Bandung</strong></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="selection-indicator-checkmark ms-3">
+                                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                                            <i class="bi bi-check-lg" style="font-size: 0.9rem; stroke-width: 2px;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+
+                        {{-- ==================== METODE DARI DATABASE (DYNAMIC CARDS) ==================== --}}
+                        @if($paymentMethods->count() > 0)
                             @foreach($paymentMethods as $paymentMethod)
                                 @php
                                     $slug = Str::slug($paymentMethod->name);
@@ -96,10 +126,13 @@
                                     $isMandiri = Str::contains(Str::lower($paymentMethod->name), 'mandiri');
                                 @endphp
 
+                                {{-- Lewati looping jika nama payment method dari DB mengandung kata mandiri (agar tidak double karena sudah dihandle manual di atas) --}}
+                                @if($isMandiri) @continue @endif
+
                                 <label class="payment-card-wrapper m-0">
                                     <input type="radio" name="payment_method_id" value="{{ $paymentMethod->id }}" 
-                                        class="payment-radio-input" required 
-                                        {{ old('payment_method_id') == $paymentMethod->id ? 'checked' : '' }}>
+                                            class="payment-radio-input" required 
+                                            {{ old('payment_method_id') == $paymentMethod->id ? 'checked' : '' }}>
                                     
                                     <div class="card payment-custom-card p-4 rounded-4 shadow-sm border">
                                         <div class="d-flex justify-content-between align-items-start w-100">
@@ -107,8 +140,6 @@
                                                 <h5 class="fw-bold text-dark mb-3">
                                                     @if($isXendit)
                                                         Transfer Virtual Account
-                                                    @elseif($isMandiri)
-                                                        E-Wallet
                                                     @else
                                                         {{ $paymentMethod->name }}
                                                     @endif
@@ -132,8 +163,8 @@
                                                 @elseif(Str::contains($slug, 'qris'))
                                                     <p class="text-muted small mb-0">Transaksi QRIS dapat dilakukan di semua aplikasi yang mendukung QRIS.</p>
                                                 
-                                                {{-- ==================== KONTEN E-WALLET (MANDIRI) ==================== --}}
-                                                @elseif(Str::contains($slug, 'e-wallet') || Str::contains($slug, 'wallet') || $isMandiri)
+                                                {{-- ==================== KONTEN E-WALLET ==================== --}}
+                                                @elseif(Str::contains($slug, 'e-wallet') || Str::contains($slug, 'wallet'))
                                                     <p class="text-muted small mb-3">Pilih salah satu E-wallet:</p>
                                                     
                                                     <div class="d-flex flex-column gap-2 border-top pt-3 mt-2 ewallet-sub-options">
@@ -164,9 +195,9 @@
                                                         <div class="input-group">
                                                             <span class="input-group-text bg-light border text-muted small">+62</span>
                                                             <input type="text" name="ewallet_phone" id="ewallet_phone_input"
-                                                                class="form-control bg-white border small shadow-none" 
-                                                                placeholder="8xxxxxxxx" 
-                                                                value="{{ old('ewallet_phone') }}">
+                                                                   class="form-control bg-white border small shadow-none" 
+                                                                   placeholder="8xxxxxxxx" 
+                                                                   value="{{ old('ewallet_phone') }}">
                                                         </div>
                                                         <div class="text-danger small mt-2 fw-semibold" style="font-size: 0.8rem;">
                                                             *Pastikan No HP yang Kamu isi terdaftar di OVO/DANA/LinkAja.
@@ -192,12 +223,8 @@
                                     </div>
                                 </label>
                             @endforeach
-                        </div>
-                    @else
-                        <div class="alert alert-warning border-0 rounded-3">
-                            <i class="bi bi-exclamation-triangle me-2"></i> Metode pembayaran belum tersedia. Hubungi admin.
-                        </div>
-                    @endif
+                        @endif
+                    </div>
 
                     <div class="mb-4 mt-4">
                         <label class="form-label fw-semibold">Catatan Pesanan (Opsional)</label>
@@ -206,11 +233,7 @@
 
                     <div class="d-flex gap-2 mt-5">
                         <a href="{{ route('cart.index') }}" class="btn btn-light px-4 fw-semibold text-muted rounded-pill">Kembali</a>
-                        @if($paymentMethods->count() > 0)
-                            <button type="submit" class="btn btn-primary px-5 fw-bold rounded-pill">Buat Pesanan Sekarang</button>
-                        @else
-                            <button type="button" class="btn btn-secondary px-4 fw-bold rounded-pill" disabled>Order Belum Tersedia</button>
-                        @endif
+                        <button type="submit" class="btn btn-primary px-5 fw-bold rounded-pill">Buat Pesanan Sekarang</button>
                     </div>
                 </form>
             </div>
@@ -269,6 +292,7 @@
     }
     .cursor-pointer { cursor: pointer; }
     .italic-style { font-style: italic; }
+    .border-dashed { border-style: dashed !important; }
 
     /* CSS Utama Card Payment */
     .payment-card-wrapper {
@@ -300,19 +324,18 @@
         display: block;
     }
 
-    /* CSS SUB-PILIHAN E-WALLET & VIRTUAL ACCOUNT */
-    .sub-wallet-item, .sub-va-item {
+    /* CSS SUB-PILIHAN E-WALLET */
+    .sub-wallet-item {
         transition: all 0.2s ease;
         border: 1px solid #e2e8f0 !important;
     }
-    .sub-wallet-radio, .sub-va-radio {
+    .sub-wallet-radio {
         transform: scale(1.1);
         cursor: pointer;
     }
     
     /* Highlight Background Biru Muda saat sub-pilihan aktif */
-    .sub-wallet-item:has(.sub-wallet-radio:checked),
-    .sub-va-item:has(.sub-va-radio:checked) {
+    .sub-wallet-item:has(.sub-wallet-radio:checked) {
         border-color: #0d6efd !important;
         background-color: #f8f9ff !important;
     }
