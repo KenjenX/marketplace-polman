@@ -49,7 +49,7 @@ class CheckoutController extends Controller
             'district'          => 'required',
             'full_address'      => 'required',
             'payment_method_id' => 'required|exists:payment_methods,id',
-            'shipping_method'   => 'required|in:jne,pos,tiki',
+            'shipping_method'   => 'required|in:jne,pos,tiki,jnt_kargo',
         ]);
 
         try {
