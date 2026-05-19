@@ -20,6 +20,8 @@
 
             <hr>
 
+            
+
             {{-- Struktur Timeline --}}
             <div class="tracking-timeline mt-4">
                 @foreach(array_reverse($data['manifest']) as $history)

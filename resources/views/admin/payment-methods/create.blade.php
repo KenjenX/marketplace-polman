@@ -16,6 +16,8 @@
             <label class="form-label">Tipe</label>
             <select name="type" class="form-select">
                 <option value="bank_transfer">Bank Transfer</option>
+                <option value="virtual_account">Virtual Account (Xendit)</option>
+                <option value="e_wallet">E-Wallet</option>
             </select>
         </div>
 

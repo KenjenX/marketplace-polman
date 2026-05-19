@@ -1,0 +1,4 @@
+{
+  "schema": "laravel",
+  "path": "database/migrations"
+}

@@ -19,6 +19,12 @@
                 <option value="bank_transfer" {{ old('type', $paymentMethod->type) === 'bank_transfer' ? 'selected' : '' }}>
                     Bank Transfer
                 </option>
+                <option value="virtual_account" {{ old('type', $paymentMethod->type) === 'virtual_account' ? 'selected' : '' }}>
+                    Virtual Account (Xendit)
+                </option>
+                <option value="e_wallet" {{ old('type', $paymentMethod->type) === 'e_wallet' ? 'selected' : '' }}>
+                    E-Wallet
+                </option>
             </select>
         </div>
 

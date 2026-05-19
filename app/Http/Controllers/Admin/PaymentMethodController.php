@@ -23,7 +23,7 @@ class PaymentMethodController extends Controller
     {
         $request->validate([
             'name' => 'required|max:255',
-            'type' => 'required|in:bank_transfer',
+            'type' => 'required|in:bank_transfer,virtual_account,e_wallet',
             'bank_name' => 'nullable|max:255',
             'account_number' => 'nullable|max:255',
             'account_name' => 'nullable|max:255',
@@ -31,7 +31,7 @@ class PaymentMethodController extends Controller
             'is_active' => 'required|boolean',
         ]);
 
-        // PERBAIKAN: Baris logika yang mematikan metode lain dihapus 
+        // PERBAIKAN: Baris logika yang mematikan metode lain dihapus agar admin bisa menambahkan metode pembayaran baru tanpa harus menonaktifkan metode yang sudah ada, sehingga admin bisa mengelola beberapa metode pembayaran sekaligus.
         // agar bisa memiliki lebih dari satu metode aktif.
 
         PaymentMethod::create([
@@ -50,7 +50,7 @@ class PaymentMethodController extends Controller
 
     public function show(PaymentMethod $paymentMethod)
     {
-        //
+        return view('admin.payment-methods.show', compact('paymentMethod'));
     }
 
     public function edit(PaymentMethod $paymentMethod)
@@ -62,7 +62,7 @@ class PaymentMethodController extends Controller
     {
         $request->validate([
             'name' => 'required|max:255',
-            'type' => 'required|in:bank_transfer',
+            'type' => 'required|in:bank_transfer,virtual_account,e_wallet',
             'bank_name' => 'nullable|max:255',
             'account_number' => 'nullable|max:255',
             'account_name' => 'nullable|max:255',
@@ -70,7 +70,10 @@ class PaymentMethodController extends Controller
             'is_active' => 'required|boolean',
         ]);
 
-        // PERBAIKAN: Baris "PaymentMethod::where('id', '!=', ...)->update(['is_active' => false]);" 
+        // PERBAIKAN: Baris "PaymentMethod::where('id', '!=', ...)->update(['is_active' => false]);" yang mematikan metode pembayaran lain dihapus
+        // agar admin bisa mengaktifkan beberapa metode pembayaran sekaligus,
+        // sehingga tidak perlu menonaktifkan metode yang sudah ada untuk mengaktifkan metode baru.
+        // Dengan ini, admin bisa lebih fleksibel dalam mengelola metode pembayaran yang tersedia.
         // dihapus agar saat update status, tidak mematikan metode pembayaran lainnya.
 
         $paymentMethod->update([

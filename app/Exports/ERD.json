@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "tables": [
+    {
+      "schema": "identity",
+      "name": "users",
+      "columns": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "name", "type": "varchar", "index": true },
+        { "name": "email", "type": "varchar", "unique": true },
+        { "name": "role", "type": "user_role(user, admin)" },
+        { "name": "created_at", "type": "timestamp", "default": "now()" }
+      ]
+    },
+    {
+      "schema": "identity",
+      "name": "credentials",
+      "columns": [
+        { "name": "provider_id", "type": "provider(email, google, facebook)", "pk": true },
+        { "name": "provider_key", "type": "varchar", "comment": "password for email, user_id for oauth providers" },
+        { "name": "user_id", "type": "uuid" },
+        { "name": "salt", "type": "varchar", "nullable": true }
+      ]
+    },
+    {
+      "schema": "catalog",
+      "name": "products",
+      "columns": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "category_id", "type": "uuid" },
+        { "name": "name", "type": "varchar", "index": true },
+        { "name": "description", "type": "text" },
+        { "name": "price", "type": "double" },
+        { "name": "created_at", "type": "timestamp", "default": "now()" },
+        { "name": "created_by", "type": "uuid" }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "name": "fk_credentials_user_id",
+      "src": { "schema": "identity", "table": "credentials", "column": "user_id" },
+      "ref": { "schema": "identity", "table": "users", "column": "id" }
+    },
+    {
+      "name": "fk_products_category_id",
+      "src": { "schema": "catalog", "table": "products", "column": "category_id" },
+      "ref": { "schema": "catalog", "table": "categories", "column": "id" }
+    }
+  ]
+}
