@@ -1,210 +1,217 @@
 @extends('layouts.store')
 
 @section('content')
-<div class="content-card">
+{{-- 🛠️ PERUBAHAN: Menambahkan baris pembungkus Grid Bootstrap agar lebar kotak putih menyusut dan berada di tengah --}}
+<div class="row justify-content-center px-2">
+    <div class="col-xl-9 col-lg-11 col-12">
 
-    {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-center mb-5">
-        <h4 class="fw-bold mb-0 text-dark">Lacak Pengiriman</h4>
+        <div class="content-card">
 
-        <a href="{{ route('orders.show', $order->uuid) }}"
-           class="btn btn-neumorph-btn btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>
-            Kembali
-        </a>
-    </div>
+            {{-- Header --}}
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <h4 class="fw-bold mb-0 text-dark">Lacak Pengiriman</h4>
 
-    @php
-        /*
-        |--------------------------------------------------------------------------
-        | Tracking History
-        |--------------------------------------------------------------------------
-        */
-        $histories = $trackingData['history'] ?? [];
-        
-        if(in_array($order->status, ['completed', 'delivered'])) {
-            $completedHistory = [
-                'date' => $order->updated_at ? $order->updated_at->format('Y-m-d H:i') : now()->format('Y-m-d H:i'),
-                'desc' => 'Pesanan telah diterima oleh pembeli'
-            ];
+                <a href="{{ route('orders.show', $order->uuid) }}"
+                   class="btn btn-neumorph-btn btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Kembali
+                </a>
+            </div>
 
-            if(count($histories) > 0) {
-                $firstDesc = strtolower($histories[0]['desc'] ?? '');
-                if(
-                    str_contains($firstDesc, 'transit') ||
-                    str_contains($firstDesc, 'delivery') ||
-                    str_contains($firstDesc, 'dikirim') ||
-                    str_contains($firstDesc, 'out for delivery')
-                ) {
-                    array_shift($histories);
+            @php
+                /*
+                |--------------------------------------------------------------------------
+                | Tracking History
+                |--------------------------------------------------------------------------
+                */
+                $histories = $trackingData['history'] ?? [];
+                
+                if(in_array($order->status, ['completed', 'delivered'])) {
+                    $completedHistory = [
+                        'date' => $order->updated_at ? $order->updated_at->format('Y-m-d H:i') : now()->format('Y-m-d H:i'),
+                        'desc' => 'Pesanan telah diterima oleh pembeli'
+                    ];
+
+                    if(count($histories) > 0) {
+                        $firstDesc = strtolower($histories[0]['desc'] ?? '');
+                        if(
+                            str_contains($firstDesc, 'transit') ||
+                            str_contains($firstDesc, 'delivery') ||
+                            str_contains($firstDesc, 'dikirim') ||
+                            str_contains($firstDesc, 'out for delivery')
+                        ) {
+                            array_shift($histories);
+                        }
+                    }
+                    array_unshift($histories, $completedHistory);
                 }
-            }
-            array_unshift($histories, $completedHistory);
-        }
 
-        /*
-        |--------------------------------------------------------------------------
-        | STEP CONFIGURATION & REALTIME MAPPING (UPDATED TO 6 STEPS)
-        |--------------------------------------------------------------------------
-        */
-        $displaySteps = [
-            'waiting_payment' => ['label' => 'Pesanan Dibuat',   'icon' => 'bi-receipt'],
-            'paid'            => ['label' => 'Menunggu Kurir',  'icon' => 'bi-box-seam'],
-            'processed'       => ['label' => 'Dikirim',          'icon' => 'bi-truck'],
-            'shipped'         => ['label' => 'Sedang Transit',   'icon' => 'bi-geo-alt'],
-            'delivered'       => ['label' => 'Pesanan Diantarkan','icon' => 'bi-house-door'],
-            'completed'       => ['label' => 'Selesai',          'icon' => 'bi-check-circle'],
-        ];
+                /*
+                |--------------------------------------------------------------------------
+                | STEP CONFIGURATION & REALTIME MAPPING (UPDATED TO 6 STEPS)
+                |--------------------------------------------------------------------------
+                */
+                $displaySteps = [
+                    'waiting_payment' => ['label' => 'Pesanan Dibuat',   'icon' => 'bi-receipt'],
+                    'paid'            => ['label' => 'Menunggu Kurir',  'icon' => 'bi-box-seam'],
+                    'processed'       => ['label' => 'Dikirim',          'icon' => 'bi-truck'],
+                    'shipped'         => ['label' => 'Sedang Transit',   'icon' => 'bi-geo-alt'],
+                    'delivered'       => ['label' => 'Pesanan Diantarkan','icon' => 'bi-house-door'],
+                    'completed'       => ['label' => 'Selesai',          'icon' => 'bi-check-circle'],
+                ];
 
-        // Pemetaan status internal DB Laravel ke indeks urutan stepper baru (0 s.d 5)
-        $statusToStepMap = [
-            'pending'         => 0,
-            'waiting_payment' => 0,
-            'paid'            => 1,
-            'processed'       => 2,
-            'shipped'         => 3,
-            'delivered'       => 4,
-            'completed'       => 5
-        ];
+                // Pemetaan status internal DB Laravel ke indeks urutan stepper baru (0 s.d 5)
+                $statusToStepMap = [
+                    'pending'         => 0,
+                    'waiting_payment' => 0,
+                    'paid'            => 1,
+                    'processed'       => 2,
+                    'shipped'         => 3,
+                    'delivered'       => 4,
+                    'completed'       => 5
+                ];
 
-        $currentStepIndex = $statusToStepMap[$order->status] ?? 0;
-        
-        // Hitung persentase lebar baris biru secara presisi berdasarkan 6 langkah (pembagi berubah jadi 5)
-        $totalSteps = count($displaySteps);
-        $progressWidth = ($totalSteps > 1) ? ($currentStepIndex / ($totalSteps - 1)) * 100 : 0;
-    @endphp
+                $currentStepIndex = $statusToStepMap[$order->status] ?? 0;
+                
+                // Hitung persentase lebar baris biru secara presisi berdasarkan 6 langkah (pembagi berubah jadi 5)
+                $totalSteps = count($displaySteps);
+                $progressWidth = ($totalSteps > 1) ? ($currentStepIndex / ($totalSteps - 1)) * 100 : 0;
+            @endphp
 
-    {{-- Real-time Stepper Component --}}
-    <div class="mb-5 position-relative px-3">
-        <div class="stepper-progress-container">
-            {{-- Garis Dasar Abu-abu --}}
-            <div class="step-line-background"></div>
-            {{-- Garis Progres Biru Beranimasi Aktif --}}
-            <div class="step-line-active" style="width: {{ $progressWidth }}%;"></div>
-        </div>
-
-        <div class="d-flex justify-content-between align-items-center position-relative w-100">
-            @foreach($displaySteps as $key => $step)
-                @php
-                    $isActive = $currentStepIndex >= $loop->index;
-                    $isCurrent = $currentStepIndex === $loop->index;
-                @endphp
-
-                <div class="step-item">
-                    {{-- Container Icon dengan Efek Glow Pulse pada titik yang sedang berjalan --}}
-                    <div class="step-icon-container {{ $isActive ? 'active' : '' }} {{ $isCurrent ? 'pulse-blue' : '' }}">
-                        <i class="bi {{ $step['icon'] }}"></i>
-                    </div>
-                    {{-- Label Status Baru --}}
-                    <div class="step-label {{ $isActive ? 'active' : '' }}">
-                        {{ $step['label'] }}
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-
-    {{-- Main Content Panel --}}
-    <div class="card-body mt-4">
-        <div class="row">
-            {{-- LEFT PANEL --}}
-            <div class="col-md-4 border-end">
-                {{-- Resi --}}
-                <div class="info-box-neumorph mb-4">
-                    <label class="text-muted small d-block">Nomor Resi</label>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <h5 class="fw-bold text-primary mb-0" id="trackingNumber">
-                            {{ $order->tracking_number ?? 'Belum ada resi' }}
-                        </h5>
-                        @if($order->tracking_number)
-                            <button class="btn btn-link p-0 text-secondary" onclick="copyToClipboard()" title="Salin Resi">
-                                <i class="bi bi-clipboard" id="copyIcon"></i>
-                            </button>
-                        @endif
-                    </div>
+            {{-- Real-time Stepper Component --}}
+            <div class="mb-5 position-relative px-3">
+                <div class="stepper-progress-container">
+                    {{-- Garis Dasar Abu-abu --}}
+                    <div class="step-line-background"></div>
+                    {{-- Garis Progres Biru Beranimasi Aktif --}}
+                    <div class="step-line-active" style="width: {{ $progressWidth }}%;"></div>
                 </div>
 
-                {{-- Kurir --}}
-                <div class="info-box-neumorph mb-4">
-                    <label class="text-muted small d-block">Kurir</label>
-                    <h5 class="fw-bold text-uppercase mb-0 text-dark">
-                        {{ $order->courier_code ?? 'JNE' }}
-                    </h5>
-                </div>
+                <div class="d-flex justify-content-between align-items-center position-relative w-100">
+                    @foreach($displaySteps as $key => $step)
+                        @php
+                            $isActive = $currentStepIndex >= $loop->index;
+                            $isCurrent = $currentStepIndex === $loop->index;
+                        @endphp
 
-                {{-- Status Akhir --}}
-                <div class="info-box-neumorph mb-4">
-                    <label class="text-muted small d-block">Status Terakhir</label>
-                    <span class="badge badge-neumorph">
-                        @if(in_array($order->status, ['completed', 'delivered']))
-                            Pesanan Diterima
-                        @else
-                            {{ $trackingData['summary']['status'] ?? ($order->status == 'shipped' ? 'Dalam Perjalanan' : $order->status) }}
-                        @endif
-                    </span>
-                </div>
-            </div>
-
-            {{-- RIGHT PANEL: TIMELINE LOGISTIK --}}
-            <div class="col-md-8">
-                @if(count($histories) > 0)
-                    <div class="tracking-list ms-lg-4">
-                        @foreach($histories as $index => $item)
-                            @php
-                                $isCompleted = in_array($order->status, ['completed', 'delivered']);
-                            @endphp
-
-                            <div class="d-flex mb-4">
-                                {{-- Tanggal & Jam --}}
-                                <div class="me-3 text-center" style="min-width: 100px;">
-                                    <small class="text-dark fw-bold d-block">
-                                        {{ explode(' ', $item['date'])[0] }}
-                                    </small>
-                                    <small class="text-muted">
-                                        {{ explode(' ', $item['date'])[1] ?? '' }}
-                                    </small>
-                                </div>
-
-                                {{-- Detil Alur Konten --}}
-                                <div class="flex-grow-1 border-start ps-4 position-relative pb-2">
-                                    {{-- Titik Poin Timeline --}}
-                                    <div class="position-absolute shadow-sm timeline-dot {{ $index === 0 ? 'dot-active' : '' }}"
-                                         style="
-                                            left: -11px;
-                                            top: 0;
-                                            width: 22px;
-                                            height: 22px;
-                                            background: {{ $index === 0 ? ($isCompleted ? '#198754' : '#0d6efd') : '#e9ecef' }};
-                                            border-radius: 50%;
-                                            border: 4px solid #fff;
-                                            z-index: 2;
-                                         ">
-                                    </div>
-
-                                    {{-- Deskripsi Status Logistik --}}
-                                    <h6 class="fw-bold mb-1 {{ $index === 0 ? ($isCompleted ? 'text-success' : 'text-primary') : 'text-dark' }}">
-                                        {{ $item['desc'] }}
-                                    </h6>
-
-                                    @if($index === 0)
-                                        <span class="badge {{ $isCompleted ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-primary border border-primary-subtle' }} small">
-                                            Terbaru
-                                        </span>
-                                    @endif
-                                </div>
+                        <div class="step-item">
+                            {{-- Container Icon dengan Efek Glow Pulse pada titik yang sedang berjalan --}}
+                            <div class="step-icon-container {{ $isActive ? 'active' : '' }} {{ $isCurrent ? 'pulse-blue' : '' }}">
+                                <i class="bi {{ $step['icon'] }}"></i>
                             </div>
-                        @endforeach
+                            {{-- Label Status Baru --}}
+                            <div class="step-label {{ $isActive ? 'active' : '' }}">
+                                {{ $step['label'] }}
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Main Content Panel --}}
+            <div class="card-body mt-4">
+                <div class="row">
+                    {{-- LEFT PANEL --}}
+                    <div class="col-md-4 border-end">
+                        {{-- Resi --}}
+                        <div class="info-box-neumorph mb-4">
+                            <label class="text-muted small d-block">Nomor Resi</label>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h5 class="fw-bold text-primary mb-0" id="trackingNumber">
+                                    {{ $order->tracking_number ?? 'Belum ada resi' }}
+                                </h5>
+                                @if($order->tracking_number)
+                                    <button class="btn btn-link p-0 text-secondary" onclick="copyToClipboard()" title="Salin Resi">
+                                        <i class="bi bi-clipboard" id="copyIcon"></i>
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- Kurir --}}
+                        <div class="info-box-neumorph mb-4">
+                            <label class="text-muted small d-block">Kurir</label>
+                            <h5 class="fw-bold text-uppercase mb-0 text-dark">
+                                {{ $order->courier_code ?? 'JNE' }}
+                            </h5>
+                        </div>
+
+                        {{-- Status Akhir --}}
+                        <div class="info-box-neumorph mb-4">
+                            <label class="text-muted small d-block">Status Terakhir</label>
+                            <span class="badge badge-neumorph">
+                                @if(in_array($order->status, ['completed', 'delivered']))
+                                    Pesanan Diterima
+                                @else
+                                    {{ $trackingData['summary']['status'] ?? ($order->status == 'shipped' ? 'Dalam Perjalanan' : $order->status) }}
+                                @endif
+                            </span>
+                        </div>
                     </div>
-                @else
-                    <div class="text-center py-5">
-                        <i class="bi bi-box-seam text-secondary-subtle" style="font-size: 5rem;"></i>
-                        <h5 class="text-secondary mt-3">Data pelacakan belum tersedia</h5>
+
+                    {{-- RIGHT PANEL: TIMELINE LOGISTIK --}}
+                    <div class="col-md-8">
+                        @if(count($histories) > 0)
+                            <div class="tracking-list ms-lg-4">
+                                @foreach($histories as $index => $item)
+                                    @php
+                                        $isCompleted = in_array($order->status, ['completed', 'delivered']);
+                                    @endphp
+
+                                    <div class="d-flex mb-4">
+                                        {{-- Tanggal & Jam --}}
+                                        <div class="me-3 text-center" style="min-width: 100px;">
+                                            <small class="text-dark fw-bold d-block">
+                                                {{ explode(' ', $item['date'])[0] }}
+                                            </small>
+                                            <small class="text-muted">
+                                                {{ explode(' ', $item['date'])[1] ?? '' }}
+                                            </small>
+                                        </div>
+
+                                        {{-- Detil Alur Konten --}}
+                                        <div class="flex-grow-1 border-start ps-4 position-relative pb-2">
+                                            {{-- Titik Poin Timeline --}}
+                                            <div class="position-absolute shadow-sm timeline-dot {{ $index === 0 ? 'dot-active' : '' }}"
+                                                 style="
+                                                    left: -11px;
+                                                    top: 0;
+                                                    width: 22px;
+                                                    height: 22px;
+                                                    background: {{ $index === 0 ? ($isCompleted ? '#198754' : '#0d6efd') : '#e9ecef' }};
+                                                    border-radius: 50%;
+                                                    border: 4px solid #fff;
+                                                    z-index: 2;
+                                                 ">
+                                            </div>
+
+                                            {{-- Deskripsi Status Logistik --}}
+                                            <h6 class="fw-bold mb-1 {{ $index === 0 ? ($isCompleted ? 'text-success' : 'text-primary') : 'text-dark' }}">
+                                                {{ $item['desc'] }}
+                                            </h6>
+
+                                            @if($index === 0)
+                                                <span class="badge {{ $isCompleted ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-primary border border-primary-subtle' }} small">
+                                                    Terbaru
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center py-5">
+                                <i class="bi bi-box-seam text-secondary-subtle" style="font-size: 5rem;"></i>
+                                <h5 class="text-secondary mt-3">Data pelacakan belum tersedia</h5>
+                            </div>
+                        @endif
                     </div>
-                @endif
+                </div>
             </div>
         </div>
+
     </div>
-</div>
+</div> {{-- 🛠️ AKHIR DARI PEMBUNGKUS GRID --}}
 
 <style>
     :root {

@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
 @extends('layouts.admin')
 
 @section('content')
@@ -108,7 +110,7 @@
                                 <td class="border-start">Rp {{ number_format($order->total_price - ($order->shipping_cost ?? 0), 0, ',', '.') }}</td>
                             </tr>
                             <tr>
-                                <td colspan="4" class="text-end border-0"><strong>Ongkos Kirim ({{ $order->courier_name ?? 'Reguler' }}):</strong></td>
+                                <td colspan="4" class="text-end border-0"><strong>Ongkos Kirim ({{ $order->courier_name ?? 'JNT Kargo' }}):</strong></td>
                                 <td class="border-start">Rp {{ number_format($order->shipping_cost ?? 0, 0, ',', '.') }}</td>
                             </tr>
                             <tr class="table-light">
@@ -163,6 +165,7 @@
                             <hr>
                             <form action="{{ route('admin.orders.updatePaymentStatus', $order->uuid) }}" method="POST">
                                 @csrf
+                                @php @endphp
                                 @method('PATCH')
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold">Catatan Penolakan (Opsional)</label>
@@ -198,18 +201,22 @@
                         <form action="{{ route('admin.orders.update-tracking', $order->uuid) }}" method="POST">
                             @csrf
                             @method('PATCH')
+                            
                             <div class="mb-2">
-                                <label class="small text-muted">Kurir</label>
-                                <select name="courier_code" class="form-select form-select-sm" required>
-                                    <option value="jne" {{ $order->courier_code == 'jne' ? 'selected' : '' }}>JNE</option>
-                                    <option value="pos" {{ $order->courier_code == 'pos' ? 'selected' : '' }}>POS Indonesia</option>
-                                    <option value="jnt" {{ $order->courier_code == 'jnt' ? 'selected' : '' }}>JNT</option>
-                                </select>
+                                <label class="small text-muted mb-1">Kurir</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="bi bi-truck text-primary"></i>
+                                    </span>
+                                    <input type="text" class="form-control bg-white border-start-0 fw-semibold text-dark" value="JNT Kargo" readonly>
+                                </div>
+                                <input type="hidden" name="courier_code" value="jnt_kargo">
                             </div>
+
                             <div class="mb-3">
                                 <label class="small text-muted">Nomor Resi</label>
                                 <input type="text" name="tracking_number" class="form-control form-control-sm" 
-                                       value="{{ $order->tracking_number }}" placeholder="Contoh: JNE12345..." required>
+                                       value="{{ $order->tracking_number }}" placeholder="Contoh: JNTK12345..." required>
                             </div>
                             <button type="submit" class="btn btn-primary btn-sm w-100">
                                 <i class="bi bi-save me-1"></i> Simpan & Kirim Barang
@@ -220,7 +227,7 @@
 
                 @if($order->tracking_number)
                     <div class="alert alert-info py-2 small mb-3">
-                        <i class="bi bi-truck me-2"></i> <strong>Resi:</strong> {{ strtoupper($order->courier_code) }} - {{ $order->tracking_number }}
+                        <i class="bi bi-truck me-2"></i> <strong>Resi:</strong> JNT Kargo - {{ $order->tracking_number }}
                     </div>
                 @endif
 
@@ -256,31 +263,3 @@
     <a href="{{ route('admin.orders.index') }}" class="btn btn-link px-0 mt-4 text-decoration-none">← Kembali ke daftar order</a>
 </div>
 @endsection
-
-{{-- CATATAN LOGIKA STATUS (DIADOPSI SESUAI PERMINTAAN) --}}
-{{--
-    LOGIKA 1: JIKA METODE XENDIT
-        - STATUS 'processing', 'shipped', 'completed' → Auto-Verified (badge hijau)
-        - STATUS 'waiting_payment' → Menunggu Bayar (badge kuning)
-        - STATUS 'expired' → Kadaluarsa (badge merah)
-        - STATUS lainnya → Pending (badge abu-abu)
-    LOGIKA 2: JIKA TRANSFER MANUAL (ADA BUKTI)
-        - validation_status 'approved', 'accepted' → Diterima (badge hijau)
-        - validation_status 'rejected' → Ditolak (badge merah)
-        - validation_status lainnya → Pending Validasi (badge biru)
-    LOGIKA 3: TRANSFER MANUAL TAPI BELUM UPLOAD
-        - Tampilkan badge "Belum Upload" (badge abu-abu)
---}}
-
-{{-- CATATAN LOGIKA WARNA STATUS (DIADOPSI SESUAI PERMINTAAN) --}}
-{{--
-    'waiting_payment'           => 'bg-warning text-dark',
-    'waiting_receipt_validation' => 'bg-info text-dark',
-     'payment_rejected'          => 'bg-danger',
-     'processing'                => 'bg-primary',
-     'shipped'                   => 'bg-primary',
-     'completed'                 => 'bg-success',
-     'cancelled'                 => 'bg-danger',
-     'expired'                   => 'bg-danger',
-     default                     => 'bg-secondary',
---}}

@@ -1,7 +1,7 @@
 @extends('layouts.store')
 
 @section('content')
-<div class="content-card">
+<div class="content-card mx-auto" style="max-width: 1020px;">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
         <div>
             <h2 class="mb-1">Detail Order</h2>
@@ -28,7 +28,7 @@
             </span>
 
             @if(in_array($order->status, ['waiting_payment', 'payment_rejected']) && $order->payment_deadline_at)
-                <p class="mb-0 mt-2 text-danger">
+                <p class="mb-0 mt-2 text-danger small">
                     <strong>Batas Pembayaran:</strong>
                     {{ $order->payment_deadline_at->format('d M Y H:i') }}
                 </p>
@@ -67,84 +67,84 @@
 
     <div class="row g-4">
         {{-- SISI KIRI: ITEM PESANAN --}}
-        <div class="col-lg-7">
-            <h5>Item Pesanan</h5>
+        <div class="col-lg-8">
+            <h5 class="mb-3">Item Pesanan</h5>
             @foreach($order->items as $item)
-                <div class="border rounded-4 p-3 mb-3">
+                <div class="border rounded-4 p-3 mb-3 bg-light-subtle">
                     <div class="fw-semibold">{{ $item->product_name }}</div>
-                    <div class="text-muted mb-2">{{ $item->variant_name }}</div>
-                    <div class="d-flex justify-content-between">
-                        <span>Harga: Rp {{ number_format($item->price, 0, ',', '.') }} x {{ $item->quantity }}</span>
-                        <span class="fw-bold">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                    <div class="text-muted small mb-2">{{ $item->variant_name }}</div>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <span class="text-muted small">Harga: Rp {{ number_format($item->price, 0, ',', '.') }} x {{ $item->quantity }}</span>
+                        <span class="fw-bold text-dark">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
                     </div>
                 </div>
             @endforeach
         </div>
 
         {{-- SISI KANAN: RINGKASAN & PEMBAYARAN --}}
-        <div class="col-lg-5">
+        <div class="col-lg-4">
             {{-- Tombol Xendit --}}
             @if($order->status == 'waiting_payment' && $order->payment_url)
                 <div class="mb-4">
                     <div class="d-grid gap-2">
-                        <a href="{{ $order->payment_url }}" target="_blank" class="btn btn-primary btn-lg rounded-4 shadow">
+                        <a href="{{ $order->payment_url }}" target="_blank" class="btn btn-primary btn-lg rounded-4 shadow-sm fs-6">
                             <i class="bi bi-wallet2 me-2"></i> Bayar Sekarang (Via Xendit)
                         </a>
                     </div>
-                    <p class="text-muted small text-center mt-2">
+                    <p class="text-muted small text-center mt-2" style="font-size: 0.75rem;">
                         Mendukung Transfer Bank, QRIS, E-Wallet, dan Retail Outlet.
                     </p>
                 </div>
             @endif
 
             {{-- Ringkasan Harga --}}
-            <div class="border rounded-4 p-3 mb-3">
-                <h5>Ringkasan</h5>
-                <div class="d-flex justify-content-between mb-1">
-                    <span>Subtotal Produk:</span>
+            <div class="border rounded-4 p-3 mb-3 bg-white shadow-sm">
+                <h5 class="mb-3 fs-6 fw-bold">Ringkasan</h5>
+                <div class="d-flex justify-content-between mb-2 small">
+                    <span class="text-muted">Subtotal Produk:</span>
                     <span>Rp {{ number_format($order->total_price - ($order->shipping_cost ?? 0), 0, ',', '.') }}</span>
                 </div>
-                <div class="d-flex justify-content-between mb-1">
-                    <span>Ongkos Kirim ({{ $order->courier_name ?? 'Reguler' }}):</span>
+                <div class="d-flex justify-content-between mb-2 small">
+                    <span class="text-muted">Ongkos Kirim ({{ $order->courier_name ?? 'Reguler' }}):</span>
                     <span>Rp {{ number_format($order->shipping_cost ?? 0, 0, ',', '.') }}</span>
                 </div>
-                <hr>
-                <div class="d-flex justify-content-between fw-bold fs-5">
+                <hr class="my-2 text-muted">
+                <div class="d-flex justify-content-between align-items-center fw-bold fs-6 pt-1">
                     <span>Total:</span>
-                    <span class="text-primary">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+                    <span class="text-primary fs-5">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
                 </div>
             </div>
 
             {{-- Alamat Pengiriman --}}
-            <div class="border rounded-4 p-3 mb-3">
-                <h5>Alamat Pengiriman</h5>
-                <p class="mb-1 fw-bold">{{ $order->address->recipient_name }}</p>
-                <p class="mb-1">{{ $order->address->phone }}</p>
-                <p class="mb-1">{{ $order->address->full_address }}</p>
-                <p class="mb-0 text-muted small">{{ $order->address->district ?? '-' }}, {{ $order->address->city ?? '-' }}, {{ $order->address->province ?? '-' }} ({{ $order->address->postal_code }})</p>
+            <div class="border rounded-4 p-3 mb-3 bg-white shadow-sm">
+                <h5 class="mb-3 fs-6 fw-bold">Alamat Pengiriman</h5>
+                <p class="mb-1 fw-bold small">{{ $order->address->recipient_name }}</p>
+                <p class="mb-1 small">{{ $order->address->phone }}</p>
+                <p class="mb-1 text-muted small" style="line-height: 1.4;">{{ $order->address->full_address }}</p>
+                <p class="mb-0 text-muted small" style="font-size: 0.8rem;">{{ $order->address->district ?? '-' }}, {{ $order->address->city ?? '-' }}, {{ $order->address->province ?? '-' }} ({{ $order->address->postal_code }})</p>
             </div>
 
             {{-- INFORMASI PEMBAYARAN --}}
             <div class="border rounded-4 p-3 bg-white shadow-sm">
-                <h5 class="mb-3">Informasi Pembayaran</h5>
-                <p class="mb-2"><strong>Metode:</strong> {{ $order->payment_method_name ?: $order->payment_method }}</p>
+                <h5 class="mb-3 fs-6 fw-bold">Informasi Pembayaran</h5>
+                <p class="mb-2 small"><strong>Metode:</strong> {{ $order->payment_method_name ?: $order->payment_method }}</p>
 
                 @if($order->payment_method_name == 'Pembayaran Online (Xendit)')
                     <div class="mt-3">
                         @if(in_array($order->status, ['processing', 'shipped', 'completed']))
-                            <div class="alert alert-success border-0 py-2 mb-1">
+                            <div class="alert alert-success border-0 py-2 mb-1 small">
                                 <i class="bi bi-patch-check-fill me-2"></i> Pembayaran Berhasil Dikonfirmasi
                             </div>
-                            <small class="text-muted">Diverifikasi otomatis oleh sistem Xendit.</small>
+                            <small class="text-muted" style="font-size: 0.75rem;">Diverifikasi otomatis oleh sistem Xendit.</small>
                         @elseif($order->status == 'waiting_payment')
-                            <div class="alert alert-warning border-0 py-2 text-dark mb-1">
+                            <div class="alert alert-warning border-0 py-2 text-dark mb-1 small">
                                 <i class="bi bi-clock-history me-2"></i> Menunggu Pembayaran
                             </div>
                             <a href="{{ $order->payment_url }}" target="_blank" class="btn btn-outline-primary btn-sm w-100 mt-2">
                                 Link Pembayaran Xendit
                             </a>
                         @elseif($order->status == 'cancelled' || $order->status == 'expired')
-                            <div class="alert alert-secondary border-0 py-2 mb-0">
+                            <div class="alert alert-secondary border-0 py-2 mb-0 small">
                                 <i class="bi bi-x-circle me-2"></i> Transaksi Dibatalkan
                             </div>
                         @endif
@@ -152,19 +152,19 @@
                 @else
                     {{-- MANUAL TRANSFER LOGIC --}}
                     @if(in_array($order->status, ['processing', 'shipped', 'completed']))
-                        <div class="alert alert-success border-0 py-2 mb-1">
+                        <div class="alert alert-success border-0 py-2 mb-2 small">
                             <i class="bi bi-patch-check-fill me-2"></i> Pembayaran Berhasil Dikonfirmasi
                         </div>
                         @if($order->paymentReceipt)
-                            <a href="{{ asset('storage/' . $order->paymentReceipt->receipt_file) }}" target="_blank" class="text-decoration-none small">
+                            <a href="{{ asset('storage/' . $order->paymentReceipt->receipt_file) }}" target="_blank" class="text-decoration-none small d-inline-block">
                                 <i class="bi bi-image me-1"></i> Lihat bukti transfer Anda
                             </a>
                         @endif
                     @elseif($order->status === 'waiting_receipt_validation')
-                        <div class="alert alert-info border-0 py-2 mb-1">
+                        <div class="alert alert-info border-0 py-2 mb-1 small">
                             <i class="bi bi-hourglass-split me-2"></i> Menunggu Validasi Admin
                         </div>
-                        <small class="text-muted">Bukti transfer Anda sedang diperiksa.</small>
+                        <small class="text-muted" style="font-size: 0.75rem;">Bukti transfer Anda sedang diperiksa.</small>
                     @elseif(in_array($order->status, ['waiting_payment', 'payment_rejected']))
                         @if($order->status === 'payment_rejected')
                             <div class="alert alert-danger border-0 py-2 mb-2 small">
@@ -172,7 +172,6 @@
                             </div>
                         @endif
                         
-                        {{-- PERBAIKAN DI SINI: Gunakan uuid dan pastikan route name sesuai --}}
                         <form action="{{ route('orders.upload_receipt', $order->uuid) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="mb-3">
@@ -182,7 +181,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                            <button type="submit" class="btn btn-primary btn-sm w-100 py-2">
                                 <i class="bi bi-cloud-upload me-1"></i> Kirim Bukti Pembayaran
                             </button>
                         </form>
@@ -192,14 +191,13 @@
         </div>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-        <a href="{{ route('orders.index') }}" class="btn btn-primary rounded-4 shadow-sm px-4">
+    <div class="d-flex justify-content-between align-items-center mt-5 pt-3 border-top">
+        <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary rounded-4 px-4 btn-sm py-2 fw-medium">
             <i class="bi bi-arrow-left me-1"></i> Kembali ke daftar order
         </a>
 
         @if(in_array($order->status, ['shipped', 'completed']))
-            {{-- Gunakan uuid --}}
-            <a href="{{ route('orders.track', $order->uuid) }}" class="btn btn-primary rounded-4 shadow-sm px-4">
+            <a href="{{ route('orders.track', $order->uuid) }}" class="btn btn-primary rounded-4 shadow-sm px-4 btn-sm py-2 fw-medium">
                 <i class="bi bi-geo-alt me-2"></i> Lacak Pesanan
             </a>
         @endif

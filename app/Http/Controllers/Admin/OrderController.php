@@ -163,9 +163,7 @@ class OrderController extends Controller
         ]);
 
         $courierName = match(strtolower($request->courier_code)) {
-            'jne' => 'JNE',
-            'jnt' => 'J&T Express',
-            'pos' => 'POS Indonesia',
+            'jnt_kargo' => 'J&T Kargo',
             default => strtoupper($request->courier_code),
         };
 
